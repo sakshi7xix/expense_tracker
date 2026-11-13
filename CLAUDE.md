@@ -52,7 +52,8 @@ flutter run
 - [x] D6 Add a spend with splits (who paid; equal, amounts, percent, shares) and a plain receipt
 - [x] Friends, part 1: balances, add a friend, settle up in full or part
 - [ ] Friends, part 2: groups, activity feed, invites, reminders
-- [ ] Stubs (weekly receipts) and Statistics (trend, top spending)
+- [x] Stubs (weekly receipts) and Statistics (Week / Month / Year trend line, top spending)
+- [x] Paper receipt (`lib/ui/kit/paper.dart`), bundled fonts (Nunito, IBM Plex Mono), category icons
 - [ ] Bills and autopay screen (the store already supports it)
-- [ ] D1 Design kit: fonts, icons per category, the 3D receipt, polish to match the prototype
+- [ ] Visual polish against the prototype, checked on a simulator
 - [ ] Settings: edit budget, edit a spend

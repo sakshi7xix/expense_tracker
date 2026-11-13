@@ -128,3 +128,29 @@ class SectionLabel extends StatelessWidget {
     );
   }
 }
+
+const _categoryIcons = {
+  'Food': Icons.restaurant_rounded,
+  'Café': Icons.local_cafe_rounded,
+  'Travel': Icons.directions_bus_rounded,
+  'Fun': Icons.star_rounded,
+  'Home': Icons.home_rounded,
+  'Study': Icons.menu_book_rounded,
+};
+
+/// Soft round icon for a spending category.
+class CategoryIcon extends StatelessWidget {
+  const CategoryIcon({super.key, required this.category, this.radius = 20});
+
+  final String category;
+  final double radius;
+
+  @override
+  Widget build(BuildContext context) {
+    return CircleAvatar(
+      radius: radius,
+      backgroundColor: StubColors.soft,
+      child: Icon(_categoryIcons[category] ?? Icons.receipt_rounded, size: radius, color: StubColors.ink),
+    );
+  }
+}

@@ -14,6 +14,7 @@ ThemeData buildStubTheme() {
   );
   return ThemeData(
     useMaterial3: true,
+    fontFamily: 'Nunito',
     colorScheme: scheme,
     scaffoldBackgroundColor: StubColors.page,
     textTheme: const TextTheme(

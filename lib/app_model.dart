@@ -12,6 +12,8 @@ class AppModel extends ChangeNotifier {
   final StubStore store;
   final DateTime Function() _clock;
 
+  DateTime get now => _clock();
+
   /// Today with the time stripped.
   DateTime get today {
     final now = _clock();

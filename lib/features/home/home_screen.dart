@@ -8,6 +8,12 @@ import '../../data/models.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
 
+String _greeting(int hour) => hour < 12
+    ? 'Good morning'
+    : hour < 17
+        ? 'Good afternoon'
+        : 'Good evening';
+
 /// Balance card, today's two numbers, and this month's spends.
 class HomeScreen extends StatelessWidget {
   const HomeScreen({super.key});
@@ -32,6 +38,7 @@ class HomeScreen extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 24),
         children: [
+          Text(_greeting(model.now.hour), style: Theme.of(context).textTheme.bodyMedium),
           Text('stub', style: Theme.of(context).textTheme.titleMedium),
           SizedBox(height: 14),
           _BalanceCard(budget: budget, spent: spent),
@@ -176,7 +183,7 @@ class _SpendRow extends StatelessWidget {
       child: SoftCard(
         child: Row(
           children: [
-            Avatar(name: category),
+            CategoryIcon(category: category),
             SizedBox(width: 12),
             Expanded(
               child: Column(
