@@ -13,8 +13,6 @@ jobs:
           channel: stable
           cache: true
       - run: flutter --version
-      - run: sudo apt-get update && sudo apt-get install -y libsqlite3-dev
       - run: flutter pub get
-      - run: flutter pub deps --style=compact | grep -E '^- (sqlite3|path|path_provider|sqlite3_flutter_libs) ' || true
       - run: flutter analyze
       - run: flutter test

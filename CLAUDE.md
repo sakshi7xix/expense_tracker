@@ -7,14 +7,16 @@ receipt, bill splitting with friends, weekly stubs and statistics.
 - Flutter stable 3.50 or newer (iOS and Android), Dart 3. Material widgets come from the
   `material_ui` package: import `package:material_ui/material_ui.dart`, not `flutter/material.dart`.
 - State: Riverpod (added in D3). Navigation: go_router (D3).
-- Storage: Drift on SQLite, local-only for Release 1 (D2). No accounts yet.
+- Storage: SQLite through the `sqlite3` package with hand-written SQL (no code generation),
+  local-only for Release 1. Schema in `lib/data/db.dart`; all reads and writes go through
+  `StubStore` (`lib/data/store.dart` and its `store_*.dart` parts). No accounts yet.
 - Money is always whole paise (`int`). Use `lib/core/money.dart`; never doubles.
 
 ## Folders
 ```
 lib/
   core/        tokens, theme, money, split maths
-  data/        drift tables, repositories, seed            (D2)
+  data/        db schema, models, StubStore (spends, friends, bills)
   ui/kit/      shared widgets: card, sheet, pill button…   (D1)
   features/    home, add, stubs, stats, friends, bills
 test/          unit tests for pure logic, one widget test per screen
@@ -42,7 +44,7 @@ flutter run
 ## Phase status
 - [x] D0 Setup: project, tokens, theme, money and split logic with tests, CI
 - [ ] D1 Design kit
-- [ ] D2 Data layer
+- [x] D2 Data layer: schema, spends, splits and friends, groups, bills and autopay, with tests
 - [ ] D3 Shell and navigation
 - [ ] D4 Welcome and budget
 - [ ] D5 Home

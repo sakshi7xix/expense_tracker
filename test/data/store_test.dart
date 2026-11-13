@@ -16,7 +16,7 @@ void main() {
     cafe = cats['Café']!;
   });
 
-  tearDown(() => store.db.dispose());
+  tearDown(() => store.db.close());
 
   test('starts with default categories and no budget', () {
     expect(store.categories().map((c) => c.name), defaultCategories);
