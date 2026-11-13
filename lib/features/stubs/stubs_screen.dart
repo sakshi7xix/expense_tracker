@@ -97,7 +97,11 @@ class _WeekStub extends StatelessWidget {
         child: Paper(
           elevation: open ? 10 : 4,
           padding: EdgeInsets.fromLTRB(16, 14, 16, 18),
-          child: Column(
+          child: AnimatedSize(
+            duration: Duration(milliseconds: 260),
+            curve: Curves.easeOutCubic,
+            alignment: Alignment.topCenter,
+            child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Row(
@@ -146,6 +150,7 @@ class _WeekStub extends StatelessWidget {
                 ),
               ],
             ],
+          ),
           ),
         ),
       ),

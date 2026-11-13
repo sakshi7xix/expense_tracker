@@ -1,8 +1,11 @@
 import 'package:sqlite3/sqlite3.dart';
 
-const schemaVersion = 1;
+const schemaVersion = 2;
 
-const defaultCategories = ['Food', 'Café', 'Travel', 'Fun', 'Home', 'Study'];
+const defaultCategories = [
+  'Food', 'Groceries', 'Café', 'Travel', 'Shopping', 'Fun', 'Home',
+  'Rent', 'Utilities', 'Electricity', 'Subscriptions', 'Health', 'Study', 'Other',
+];
 
 /// A fresh in-memory database, used by tests.
 Database openMemoryDb() {
@@ -17,20 +20,23 @@ Database openFileDb(String path) {
   return db;
 }
 
-/// Creates the schema on first open. Amounts are whole paise; days are
-/// 'YYYY-MM-DD' text; rows are soft-deleted with `deleted = 1`.
+/// Creates the schema on first open and upgrades older databases.
+/// Amounts are whole paise; days are 'YYYY-MM-DD' text; rows are
+/// soft-deleted with `deleted = 1`.
 void migrate(Database db) {
   db.execute('PRAGMA foreign_keys = ON');
-  if (db.userVersion >= schemaVersion) return;
+  final from = db.userVersion;
+  if (from >= schemaVersion) return;
   db.execute('BEGIN');
-  for (final statement in _v1) {
-    db.execute(statement);
+  if (from < 1) {
+    for (final statement in _v1) {
+      db.execute(statement);
+    }
   }
+  // v2: the full category list, in display order. Existing ones are kept.
   for (var i = 0; i < defaultCategories.length; i++) {
-    db.execute(
-      'INSERT INTO category (name, sort) VALUES (?, ?)',
-      [defaultCategories[i], i],
-    );
+    db.execute('INSERT OR IGNORE INTO category (name, sort) VALUES (?, ?)', [defaultCategories[i], i]);
+    db.execute('UPDATE category SET sort = ? WHERE name = ?', [i, defaultCategories[i]]);
   }
   db.userVersion = schemaVersion;
   db.execute('COMMIT');

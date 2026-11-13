@@ -179,4 +179,14 @@ void main() {
       expect(store.entriesForMonth(nov).single.day, '2026-11-30');
     });
   });
+
+  test('an older database gains the new categories without losing its own', () {
+    final db = openMemoryDb();
+    db.execute("DELETE FROM category WHERE name NOT IN ('Food', 'Café')");
+    db.userVersion = 1;
+    migrate(db);
+    final upgraded = StubStore(db);
+    expect(upgraded.categories().map((c) => c.name), defaultCategories);
+    db.close();
+  });
 }
