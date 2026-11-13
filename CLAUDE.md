@@ -6,7 +6,9 @@ receipt, bill splitting with friends, weekly stubs and statistics.
 ## Stack
 - Flutter stable 3.50 or newer (iOS and Android), Dart 3. Material widgets come from the
   `material_ui` package: import `package:material_ui/material_ui.dart`, not `flutter/material.dart`.
-- State: Riverpod (added in D3). Navigation: go_router (D3).
+- State: one `AppModel` (a `ChangeNotifier` around the store) shared through `StubScope`.
+  Read with `StubScope.of(context)`; change data with `model.write((store) => ...)`.
+  Navigation is the plain `Navigator`. No Riverpod or go_router.
 - Storage: SQLite through the `sqlite3` package with hand-written SQL (no code generation),
   local-only for Release 1. Schema in `lib/data/db.dart`; all reads and writes go through
   `StubStore` (`lib/data/store.dart` and its `store_*.dart` parts). No accounts yet.
@@ -43,9 +45,14 @@ flutter run
 
 ## Phase status
 - [x] D0 Setup: project, tokens, theme, money and split logic with tests, CI
-- [ ] D1 Design kit
 - [x] D2 Data layer: schema, spends, splits and friends, groups, bills and autopay, with tests
-- [ ] D3 Shell and navigation
-- [ ] D4 Welcome and budget
-- [ ] D5 Home
-- [ ] D6 Add a spend (with splits)
+- [x] D3 Shell: tab bar and + button (Stubs and Statistics are placeholders)
+- [x] D4 Welcome and budget
+- [x] D5 Home: balance card, today, this month's spends, long-press delete with undo
+- [x] D6 Add a spend with splits (who paid; equal, amounts, percent, shares) and a plain receipt
+- [x] Friends, part 1: balances, add a friend, settle up in full or part
+- [ ] Friends, part 2: groups, activity feed, invites, reminders
+- [ ] Stubs (weekly receipts) and Statistics (trend, top spending)
+- [ ] Bills and autopay screen (the store already supports it)
+- [ ] D1 Design kit: fonts, icons per category, the 3D receipt, polish to match the prototype
+- [ ] Settings: edit budget, edit a spend
