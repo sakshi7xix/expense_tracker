@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+import 'package:material_ui/material_ui.dart';
 
 /// Design tokens from the "Stub, quiet" prototype.
 /// Neutral paper tones, ink black, and one green accent.
