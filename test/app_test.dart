@@ -65,18 +65,32 @@ void main() {
     await tester.tap(find.byKey(const Key('fab-add')));
     await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('amount-field')), '120');
-    await tester.ensureVisible(find.byKey(Key('friend-$riya')));
+    expect(find.text('Just me'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('split-row')));
+    await tester.pumpAndSettle();
     await tester.tap(find.byKey(Key('friend-$riya')));
     await tester.pumpAndSettle();
     expect(find.text('Riya owes you ₹60.00'), findsOneWidget);
 
-    await tester.ensureVisible(find.byKey(Key('payer-$riya')));
     await tester.tap(find.byKey(Key('payer-$riya')));
     await tester.pumpAndSettle();
     expect(find.text('You owe Riya ₹60.00'), findsOneWidget);
 
+    await tester.tap(find.byKey(const Key('method-exact')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(Key('value-$riya')), '100');
+    await tester.pumpAndSettle();
+    expect(find.text('₹40.00 too much'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('method-equal')));
+    await tester.pumpAndSettle();
+
     await tester.tap(find.byKey(const Key('payer-me')));
     await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('split-done')));
+    await tester.tap(find.byKey(const Key('split-done')));
+    await tester.pumpAndSettle();
+    expect(find.text('With Riya'), findsOneWidget);
+
     await tester.tap(find.byKey(const Key('save-button')));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Done'));
@@ -151,5 +165,29 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('Books'), findsOneWidget);
     expect(find.text('₹820.00'), findsWidgets);
+  });
+
+  testWidgets('category is picked from a sheet and saved with the spend', (tester) async {
+    final model = newModel();
+    await start(tester, model);
+
+    await tester.tap(find.byKey(const Key('fab-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('amount-field')), '640');
+    await tester.tap(find.byKey(const Key('category-row')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('cat-Electricity')));
+    await tester.pumpAndSettle();
+    expect(find.text('Electricity'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('save-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    final entry = model.store.entriesForMonth(model.today).single;
+    final names = {for (final c in model.store.categories()) c.id: c.name};
+    expect(entry.title, 'Electricity');
+    expect(names[entry.categoryId], 'Electricity');
   });
 }

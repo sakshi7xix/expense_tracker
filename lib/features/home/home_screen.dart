@@ -98,20 +98,30 @@ class _BalanceCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            formatInr(left),
-            key: Key('left-amount'),
-            style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900),
+          TweenAnimationBuilder<double>(
+            tween: Tween(end: left.toDouble()),
+            duration: Duration(milliseconds: 650),
+            curve: Curves.easeOutCubic,
+            builder: (context, value, _) => Text(
+              formatInr(value.round()),
+              key: Key('left-amount'),
+              style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900),
+            ),
           ),
           Text(left < 0 ? 'Over this month' : 'Left this month', style: faint),
           SizedBox(height: 20),
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
-            child: LinearProgressIndicator(
-              value: used.toDouble(),
-              minHeight: 5,
-              backgroundColor: Colors.white24,
-              color: StubColors.pop,
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: used.toDouble()),
+              duration: Duration(milliseconds: 650),
+              curve: Curves.easeOutCubic,
+              builder: (context, value, _) => LinearProgressIndicator(
+                value: value,
+                minHeight: 5,
+                backgroundColor: Colors.white24,
+                color: Color(0xFF7FA6FF),
+              ),
             ),
           ),
           SizedBox(height: 14),

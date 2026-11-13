@@ -39,14 +39,26 @@ class _ShellState extends State<Shell> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: IndexedStack(
-        index: _tab,
-        children: [
-          HomeScreen(),
-          StubsScreen(),
-          StatsScreen(),
-          FriendsScreen(),
-        ],
+      body: AnimatedSwitcher(
+        duration: Duration(milliseconds: 240),
+        switchInCurve: Curves.easeOutCubic,
+        switchOutCurve: Curves.easeInCubic,
+        transitionBuilder: (child, animation) => FadeTransition(
+          opacity: animation,
+          child: SlideTransition(
+            position: Tween(begin: Offset(0, 0.015), end: Offset.zero).animate(animation),
+            child: child,
+          ),
+        ),
+        child: KeyedSubtree(
+          key: ValueKey(_tab),
+          child: switch (_tab) {
+            0 => HomeScreen(),
+            1 => StubsScreen(),
+            2 => StatsScreen(),
+            _ => FriendsScreen(),
+          },
+        ),
       ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       floatingActionButton: FloatingActionButton(

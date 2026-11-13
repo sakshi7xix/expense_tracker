@@ -1,5 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
+import '../../core/categories.dart';
 import '../../core/tokens.dart';
 
 /// White rounded surface used for rows, tiles and form cards.
@@ -85,7 +86,7 @@ class ChoicePill extends StatelessWidget {
   }
 }
 
-/// Round initial for a friend.
+/// Round initial for a friend, in that friend's own colour.
 class Avatar extends StatelessWidget {
   const Avatar({super.key, required this.name, this.filled = false, this.radius = 20});
 
@@ -95,15 +96,16 @@ class Avatar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final (color, tint) = friendColors(name);
     return CircleAvatar(
       radius: radius,
-      backgroundColor: filled ? StubColors.ink : StubColors.soft,
+      backgroundColor: filled ? color : tint,
       child: Text(
         name.isEmpty ? '?' : name[0].toUpperCase(),
         style: TextStyle(
           fontWeight: FontWeight.w800,
           fontSize: radius * 0.75,
-          color: filled ? Colors.white : StubColors.ink,
+          color: filled ? Colors.white : color,
         ),
       ),
     );
@@ -129,16 +131,7 @@ class SectionLabel extends StatelessWidget {
   }
 }
 
-const _categoryIcons = {
-  'Food': Icons.restaurant_rounded,
-  'Café': Icons.local_cafe_rounded,
-  'Travel': Icons.directions_bus_rounded,
-  'Fun': Icons.star_rounded,
-  'Home': Icons.home_rounded,
-  'Study': Icons.menu_book_rounded,
-};
-
-/// Soft round icon for a spending category.
+/// Round icon for a spending category, in the category's colour.
 class CategoryIcon extends StatelessWidget {
   const CategoryIcon({super.key, required this.category, this.radius = 20});
 
@@ -147,10 +140,26 @@ class CategoryIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final style = categoryStyle(category);
     return CircleAvatar(
       radius: radius,
-      backgroundColor: StubColors.soft,
-      child: Icon(_categoryIcons[category] ?? Icons.receipt_rounded, size: radius, color: StubColors.ink),
+      backgroundColor: style.tint,
+      child: Icon(style.icon, size: radius, color: style.color),
+    );
+  }
+}
+
+/// The small handle at the top of a bottom sheet.
+class SheetGrab extends StatelessWidget {
+  const SheetGrab({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: 38,
+      height: 5,
+      margin: EdgeInsets.only(bottom: 14),
+      decoration: BoxDecoration(color: Color(0xFFD5D4D9), borderRadius: BorderRadius.circular(3)),
     );
   }
 }

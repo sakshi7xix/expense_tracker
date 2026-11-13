@@ -1,7 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 /// Design tokens from the "Stub, quiet" prototype.
-/// Neutral paper tones, ink black, and one green accent.
+/// Neutral paper tones and ink black, a blue accent for actions, and a colour
+/// per category and per friend (see categories.dart).
 abstract final class StubColors {
   static const page = Color(0xFFF3F2EF);
   static const surface = Color(0xFFFFFFFF);
@@ -9,8 +10,8 @@ abstract final class StubColors {
   static const ink = Color(0xFF1F1F21);
   static const muted = Color(0xFF85848A);
   static const line = Color(0x0F000000);
-  static const pop = Color(0xFF3F9368);
-  static const popDark = Color(0xFF2E7352);
+  static const pop = Color(0xFF2F6BFF);
+  static const popDark = Color(0xFF1F4FD1);
   static const owed = Color(0xFF2E7352);
   static const owe = Color(0xFF9A4A3A);
   static const cardTop = Color(0xFF3C3C42);

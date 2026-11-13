@@ -22,18 +22,23 @@ class ReceiptDialog extends StatelessWidget {
           children: [
             TweenAnimationBuilder<double>(
               tween: Tween(begin: 0, end: 1),
-              duration: Duration(milliseconds: 700),
-              curve: Curves.easeOutCubic,
+              duration: Duration(milliseconds: 900),
+              curve: Curves.easeOutQuart,
               builder: (context, t, child) => Opacity(
-                opacity: t,
-                child: Transform.translate(offset: Offset(0, -48 * (1 - t)), child: child),
+                opacity: (t * 2).clamp(0.0, 1.0).toDouble(),
+                child: Transform.translate(
+                  offset: Offset(0, -70 * (1 - t)),
+                  child: Transform.scale(scale: 0.94 + 0.06 * t, child: child),
+                ),
               ),
-              child: Padding(
-                padding: EdgeInsets.symmetric(vertical: 24),
-                child: Tilted(
-                  child: SizedBox(
-                    width: 260,
-                    child: Paper(child: ReceiptView(subtitle: subtitle, lines: lines)),
+              child: RepaintBoundary(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 24),
+                  child: Tilted(
+                    child: SizedBox(
+                      width: 260,
+                      child: Paper(child: ReceiptView(subtitle: subtitle, lines: lines)),
+                    ),
                   ),
                 ),
               ),
