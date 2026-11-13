@@ -10,6 +10,9 @@ dependencies:
   flutter:
     sdk: flutter
   material_ui: ^1.11.0
+  sqlite3: ^3.9.1
+  path: ^1.9.1
+  path_provider: ^2.1.6
 
 dev_dependencies:
   flutter_test:
