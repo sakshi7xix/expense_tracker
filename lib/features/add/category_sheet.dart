@@ -21,15 +21,16 @@ Future<int?> showCategorySheet(BuildContext context, List<Category> categories, 
             const SheetGrab(),
             Text('Category', style: Theme.of(context).textTheme.titleMedium),
             SizedBox(height: 16),
-            GridView.count(
-              crossAxisCount: 4,
-              shrinkWrap: true,
-              physics: NeverScrollableScrollPhysics(),
-              mainAxisSpacing: 10,
-              childAspectRatio: 0.92,
+            Flexible(
+              child: SingleChildScrollView(
+                child: Wrap(
+              alignment: WrapAlignment.center,
+              runSpacing: 12,
               children: [
                 for (final c in categories)
-                  GestureDetector(
+                  SizedBox(
+                    width: 78,
+                    child: GestureDetector(
                     key: Key('cat-${c.name}'),
                     behavior: HitTestBehavior.opaque,
                     onTap: () => Navigator.of(context).pop(c.id),
@@ -61,7 +62,10 @@ Future<int?> showCategorySheet(BuildContext context, List<Category> categories, 
                       ],
                     ),
                   ),
+                  ),
               ],
+            ),
+              ),
             ),
           ],
         ),
