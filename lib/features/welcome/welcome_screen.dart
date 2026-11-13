@@ -5,7 +5,7 @@ import '../../core/money.dart';
 import '../../core/tokens.dart';
 import '../../ui/kit/kit.dart';
 
-/// First run: ask for the monthly budget, then open the app.
+/// First run: ask what comes in each month, then open the app.
 class WelcomeScreen extends StatefulWidget {
   const WelcomeScreen({super.key});
 
@@ -48,9 +48,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               Spacer(),
               Text('stub', style: text.titleMedium),
               SizedBox(height: 12),
-              Text('What can you spend in a month?', style: text.displaySmall),
+              Text('How much do you earn in a month?', style: text.displaySmall),
               SizedBox(height: 8),
-              Text('You can change this any time.', style: text.bodyMedium),
+              Text('Salary, pocket money or allowance. Stub shows how much of it is left.', style: text.bodyMedium),
               SizedBox(height: 28),
               TextField(
                 key: Key('budget-field'),

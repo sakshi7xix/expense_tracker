@@ -1,47 +1,57 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/tokens.dart';
+import '../../ui/kit/paper.dart';
 
-/// The printed stub shown after saving. A plain receipt for now; the 3D
-/// paper from the prototype comes with the design-kit phase.
+/// The printed stub shown after saving: tilted paper that feeds in from above.
 class ReceiptDialog extends StatelessWidget {
-  const ReceiptDialog({super.key, required this.lines});
+  const ReceiptDialog({super.key, required this.lines, this.subtitle});
 
-  /// Label and value pairs, top to bottom. A null value draws a rule.
-  final List<(String, String?)> lines;
+  final List<ReceiptLine> lines;
+  final String? subtitle;
 
   @override
   Widget build(BuildContext context) {
-    final mono = TextStyle(fontFamily: 'monospace', fontSize: 13, color: StubColors.ink);
-    return AlertDialog(
-      backgroundColor: Color(0xFFFCFCFA),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(6)),
-      title: Center(
-        child: Text('STUB', style: TextStyle(fontWeight: FontWeight.w900, letterSpacing: 4, fontSize: 16)),
-      ),
-      content: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          for (final (label, value) in lines)
-            if (value == null)
-              Divider(height: 18, color: StubColors.muted)
-            else
-              Padding(
-                padding: EdgeInsets.symmetric(vertical: 3),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Flexible(child: Text(label, style: mono, overflow: TextOverflow.ellipsis)),
-                    SizedBox(width: 12),
-                    Text(value, style: mono),
-                  ],
+    return Dialog(
+      backgroundColor: Colors.transparent,
+      elevation: 0,
+      insetPadding: EdgeInsets.all(24),
+      child: SingleChildScrollView(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TweenAnimationBuilder<double>(
+              tween: Tween(begin: 0, end: 1),
+              duration: Duration(milliseconds: 700),
+              curve: Curves.easeOutCubic,
+              builder: (context, t, child) => Opacity(
+                opacity: t,
+                child: Transform.translate(offset: Offset(0, -48 * (1 - t)), child: child),
+              ),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 24),
+                child: Tilted(
+                  child: SizedBox(
+                    width: 260,
+                    child: Paper(child: ReceiptView(subtitle: subtitle, lines: lines)),
+                  ),
                 ),
               ),
-        ],
+            ),
+            SizedBox(height: 8),
+            FilledButton(
+              style: FilledButton.styleFrom(
+                backgroundColor: StubColors.ink,
+                foregroundColor: Colors.white,
+                padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
+                shape: StadiumBorder(),
+              ),
+              onPressed: () => Navigator.of(context).pop(),
+              child: Text('Done'),
+            ),
+          ],
+        ),
       ),
-      actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Done')),
-      ],
     );
   }
 }

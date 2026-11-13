@@ -24,7 +24,7 @@ void main() {
   testWidgets('first run asks for a budget, then opens Home', (tester) async {
     final model = newModel();
     await tester.pumpWidget(StubApp(model: model));
-    expect(find.text('What can you spend in a month?'), findsOneWidget);
+    expect(find.text('How much do you earn in a month?'), findsOneWidget);
 
     await tester.tap(find.text('Start'));
     await tester.pump();
@@ -107,5 +107,49 @@ void main() {
 
     expect(model.store.balanceOf(riya), 3500);
     expect(find.text('₹35'), findsWidgets);
+  });
+
+  testWidgets('Statistics totals the period and switches range', (tester) async {
+    final model = newModel();
+    final food = model.store.categories().first.id;
+    model.store.addSpend(title: 'Groceries', total: 32650, categoryId: food, day: model.today);
+    model.store.addSpend(title: 'Lunch', total: 14000, categoryId: food, day: DateTime(2026, 11, 22));
+    model.store.addSpend(title: 'Rent', total: 280000, categoryId: food, day: DateTime(2026, 10, 1));
+    await start(tester, model);
+
+    await tester.tap(find.byKey(const Key('nav-statistics')));
+    await tester.pumpAndSettle();
+    String total() => tester.widget<Text>(find.byKey(const Key('stats-total'))).data!;
+    expect(total(), '₹467');
+    expect(find.text('100% of spending'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('range-year')));
+    await tester.pumpAndSettle();
+    expect(total(), '₹3,267');
+
+    await tester.tap(find.byKey(const Key('range-week')));
+    await tester.pumpAndSettle();
+    expect(total(), '₹467');
+    expect(tester.widget<Text>(find.byKey(const Key('stats-period'))).data, 'Last 7 days · Today');
+  });
+
+  testWidgets('Stubs shows one receipt per week with its total', (tester) async {
+    final model = newModel();
+    final food = model.store.categories().first.id;
+    model.store.addSpend(title: 'Groceries', total: 32650, categoryId: food, day: model.today);
+    model.store.addSpend(title: 'Books', total: 82000, categoryId: food, day: DateTime(2026, 11, 9));
+    await start(tester, model);
+
+    await tester.tap(find.byKey(const Key('nav-stubs')));
+    await tester.pumpAndSettle();
+    expect(find.text('Week 4'), findsOneWidget);
+    expect(find.text('Groceries'), findsOneWidget);
+    expect(find.text('Books'), findsNothing);
+
+    await tester.ensureVisible(find.byKey(const Key('week-2')));
+    await tester.tap(find.byKey(const Key('week-2')));
+    await tester.pumpAndSettle();
+    expect(find.text('Books'), findsOneWidget);
+    expect(find.text('₹820.00'), findsWidgets);
   });
 }

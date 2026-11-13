@@ -1,12 +1,14 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app_model.dart';
+import '../../core/dates.dart';
 import '../../core/money.dart';
 import '../../core/split.dart';
 import '../../core/tokens.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
 import '../friends/add_friend_dialog.dart';
+import '../../ui/kit/paper.dart';
 import 'receipt_dialog.dart';
 
 const _me = 'me';
@@ -136,19 +138,22 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
       ),
     );
 
+    final left = store.budget - store.spentInMonth(model.today);
+    final today = model.today;
     await showDialog<void>(
       context: context,
       builder: (_) => ReceiptDialog(
+        subtitle: '${weekdayShort(today)} ${today.day} ${monthShort(today)} ${today.year} · $category'.toUpperCase(),
         lines: [
-          (title, formatInr(total, decimals: true)),
-          (category, ''),
+          ReceiptLine.rule(),
+          ReceiptLine(title, formatInr(total, decimals: true)),
           if (split != null) ...[
-            ('', null),
-            for (final line in _debtLines(split, names)) (line, ''),
-            ('Your share', formatInr(mine, decimals: true)),
+            for (final line in _debtLines(split, names)) ReceiptLine(line, ''),
+            ReceiptLine('Your share', formatInr(mine, decimals: true)),
           ],
-          ('', null),
-          ('Left this month', formatInr(store.budget - store.spentInMonth(model.today), decimals: true)),
+          ReceiptLine.rule(),
+          ReceiptLine('Today so far', formatInr(store.spentOnDay(today), decimals: true)),
+          ReceiptLine('LEFT', formatInr(left, decimals: true), bold: true),
         ],
       ),
     );
