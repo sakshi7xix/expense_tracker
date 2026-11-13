@@ -14,6 +14,5 @@ jobs:
           cache: true
       - run: flutter --version
       - run: flutter pub get
-      - run: flutter pub deps --style=compact | grep -i -E 'material_ui|flutter_lints' || true
       - run: flutter analyze
       - run: flutter test

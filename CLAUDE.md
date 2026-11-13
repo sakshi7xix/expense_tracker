@@ -4,7 +4,8 @@ Stub is a calm expense tracker: a monthly budget, quick spend entry with a print
 receipt, bill splitting with friends, weekly stubs and statistics.
 
 ## Stack
-- Flutter (iOS and Android), Dart 3.
+- Flutter stable 3.50 or newer (iOS and Android), Dart 3. Material widgets come from the
+  `material_ui` package: import `package:material_ui/material_ui.dart`, not `flutter/material.dart`.
 - State: Riverpod (added in D3). Navigation: go_router (D3).
 - Storage: Drift on SQLite, local-only for Release 1 (D2). No accounts yet.
 - Money is always whole paise (`int`). Use `lib/core/money.dart`; never doubles.
