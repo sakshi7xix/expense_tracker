@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 
 import '../../app_model.dart';
 import '../../core/tokens.dart';
+import '../../data/auth.dart';
 import '../../data/store.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/motion.dart';
@@ -21,6 +22,7 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
   final _name = TextEditingController();
   final _contact = TextEditingController();
   String? _error;
+  String? _emailError;
 
   @override
   void dispose() {
@@ -30,9 +32,14 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
   }
 
   void _save() {
+    final email = _contact.text.trim();
+    if (email.isNotEmpty && !looksLikeEmail(email)) {
+      setState(() => _emailError = 'That email doesn’t look right');
+      return;
+    }
     try {
       final id = StubScope.of(context).write(
-        (store) => store.addFriend(_name.text, contact: _contact.text),
+        (store) => store.addFriend(_name.text, contact: email.toLowerCase()),
       );
       Navigator.of(context).pop(id);
     } on ArgumentError {
@@ -62,7 +69,14 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
             controller: _contact,
             keyboardType: TextInputType.emailAddress,
             style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: StubColors.ink),
-            decoration: InputDecoration(labelText: 'Phone or email (optional)'),
+            decoration: InputDecoration(
+              labelText: 'Their email (optional)',
+              helperText: 'So they’re linked to you when they join',
+              errorText: _emailError,
+            ),
+            onChanged: (_) {
+              if (_emailError != null) setState(() => _emailError = null);
+            },
             onSubmitted: (_) => _save(),
           ),
         ],
