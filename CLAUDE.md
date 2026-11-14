@@ -28,11 +28,13 @@ test/          unit tests for pure logic, one widget test per screen
 - One phase per session; finish, run analyze and tests, commit as "<ID> <name>".
 - Edit only the files a phase names. Keep files under about 300 lines.
 - Pure logic (totals, formatting, splits) gets unit tests. No end-to-end suite yet.
-- Colours, radii and spacing come from `lib/core/tokens.dart` (blue accent for actions).
+- Colours, radii and spacing come from `lib/core/tokens.dart` (orange accent for actions).
   Each category and friend has its own colour in `lib/core/categories.dart`.
 - Keep forms short: anything with more than a couple of options opens a bottom sheet
   (see `category_sheet.dart`, `split_sheet.dart`).
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on every push.
+  It also renders preview PNGs (`test/golden/`, tag `golden`) and pushes them to the
+  `previews` branch under a folder named after the branch, so screens can be checked by eye.
 
 ## Design source
 The "Stub, quiet" prototype: card-style Home, Add a spend with splits and a 3D

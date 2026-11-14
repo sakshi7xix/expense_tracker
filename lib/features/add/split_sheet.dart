@@ -227,7 +227,7 @@ class _SplitSheetState extends State<SplitSheet> {
                               width: double.infinity,
                               padding: EdgeInsets.all(12),
                               decoration: BoxDecoration(
-                                color: bad ? Color(0xFFFBEDEA) : Color(0xFFEAF0FF),
+                                color: bad ? Color(0xFFFBEDEA) : Color(0xFFFFF1E8),
                                 borderRadius: BorderRadius.circular(StubRadius.control),
                               ),
                               child: Column(

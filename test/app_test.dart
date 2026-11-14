@@ -190,4 +190,15 @@ void main() {
     expect(entry.title, 'Electricity');
     expect(names[entry.categoryId], 'Electricity');
   });
+
+  testWidgets('the + button only shows on Home', (tester) async {
+    await start(tester, newModel());
+    expect(find.byKey(const Key('fab-add')), findsOneWidget);
+    await tester.tap(find.byKey(const Key('nav-friends')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('fab-add')), findsNothing);
+    await tester.tap(find.byKey(const Key('nav-home')));
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('fab-add')), findsOneWidget);
+  });
 }

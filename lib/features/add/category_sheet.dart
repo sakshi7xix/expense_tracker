@@ -7,6 +7,9 @@ import '../../ui/kit/kit.dart';
 
 /// A grid of every category. Returns the chosen category id.
 Future<int?> showCategorySheet(BuildContext context, List<Category> categories, int selectedId) {
+  final byName = {for (final c in categories) c.name: c};
+  final listed = {for (final (_, names) in categoryGroups) ...names};
+  final extra = [for (final c in categories) if (!listed.contains(c.name)) c];
   return showModalBottomSheet<int>(
     context: context,
     isScrollControlled: true,
@@ -23,52 +26,74 @@ Future<int?> showCategorySheet(BuildContext context, List<Category> categories, 
             SizedBox(height: 16),
             Flexible(
               child: SingleChildScrollView(
-                child: Wrap(
-              alignment: WrapAlignment.center,
-              runSpacing: 12,
-              children: [
-                for (final c in categories)
-                  SizedBox(
-                    width: 78,
-                    child: GestureDetector(
-                    key: Key('cat-${c.name}'),
-                    behavior: HitTestBehavior.opaque,
-                    onTap: () => Navigator.of(context).pop(c.id),
-                    child: Column(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Container(
-                          padding: EdgeInsets.all(3),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              width: 2,
-                              color: c.id == selectedId ? categoryStyle(c.name).color : Colors.transparent,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    for (final (title, names) in categoryGroups)
+                      if (names.any(byName.containsKey)) ...[
+                        if (title.isNotEmpty)
+                          Padding(
+                            padding: EdgeInsets.fromLTRB(4, 6, 4, 8),
+                            child: Text(
+                              title,
+                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: StubColors.muted),
                             ),
                           ),
-                          child: CategoryIcon(category: c.name, radius: 23),
+                        Wrap(
+                          runSpacing: 10,
+                          children: [
+                            for (final name in names)
+                              if (byName[name] case final c?) _cell(context, c, selectedId),
+                          ],
                         ),
-                        SizedBox(height: 5),
-                        Text(
-                          c.name,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: TextStyle(
-                            fontSize: 11.5,
-                            fontWeight: c.id == selectedId ? FontWeight.w800 : FontWeight.w700,
-                            color: c.id == selectedId ? StubColors.ink : StubColors.muted,
-                          ),
-                        ),
+                        SizedBox(height: 10),
                       ],
-                    ),
-                  ),
-                  ),
-              ],
-            ),
+                    if (extra.isNotEmpty)
+                      Wrap(runSpacing: 10, children: [for (final c in extra) _cell(context, c, selectedId)]),
+                  ],
+                ),
               ),
             ),
           ],
         ),
+      ),
+    ),
+  );
+}
+
+Widget _cell(BuildContext context, Category c, int selectedId) {
+  final selected = c.id == selectedId;
+  return SizedBox(
+    width: 80,
+    child: GestureDetector(
+      key: Key('cat-${c.name}'),
+      behavior: HitTestBehavior.opaque,
+      onTap: () => Navigator.of(context).pop(c.id),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AnimatedContainer(
+            duration: Duration(milliseconds: 150),
+            padding: EdgeInsets.all(3),
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(width: 2, color: selected ? categoryStyle(c.name).color : Colors.transparent),
+            ),
+            child: CategoryIcon(category: c.name, radius: 23),
+          ),
+          SizedBox(height: 5),
+          Text(
+            c.name,
+            maxLines: 2,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 11,
+              height: 1.15,
+              fontWeight: selected ? FontWeight.w800 : FontWeight.w700,
+              color: selected ? StubColors.ink : StubColors.muted,
+            ),
+          ),
+        ],
       ),
     ),
   );

@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
 
     return SafeArea(
       child: ListView(
-        padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 24),
+        padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 96),
         children: [
           Text(_greeting(model.now.hour), style: Theme.of(context).textTheme.bodyMedium),
           Text('stub', style: Theme.of(context).textTheme.titleMedium),
@@ -120,7 +120,7 @@ class _BalanceCard extends StatelessWidget {
                 value: value,
                 minHeight: 5,
                 backgroundColor: Colors.white24,
-                color: Color(0xFF7FA6FF),
+                color: Color(0xFFFF9A5C),
               ),
             ),
           ),

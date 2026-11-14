@@ -1,11 +1,17 @@
 import 'package:sqlite3/sqlite3.dart';
 
-const schemaVersion = 2;
+const schemaVersion = 3;
 
 const defaultCategories = [
-  'Food', 'Groceries', 'Café', 'Travel', 'Shopping', 'Fun', 'Home',
-  'Rent', 'Utilities', 'Electricity', 'Subscriptions', 'Health', 'Study', 'Other',
+  'Food', 'Groceries', 'Transport', 'Shopping',
+  'Rent', 'Electricity', 'Water & gas', 'Internet & mobile', 'Subscriptions',
+  'Health', 'Education', 'Personal care', 'Entertainment', 'Trips', 'Gifts',
+  'Other',
 ];
+
+/// Older category names and where they went in v3.
+const _renamed = {'Travel': 'Transport', 'Fun': 'Entertainment', 'Study': 'Education', 'Utilities': 'Water & gas'};
+const _merged = {'Café': 'Food', 'Home': 'Other'};
 
 /// A fresh in-memory database, used by tests.
 Database openMemoryDb() {
@@ -33,13 +39,43 @@ void migrate(Database db) {
       db.execute(statement);
     }
   }
-  // v2: the full category list, in display order. Existing ones are kept.
+  if (from >= 1) _refineCategories(db);
   for (var i = 0; i < defaultCategories.length; i++) {
     db.execute('INSERT OR IGNORE INTO category (name, sort) VALUES (?, ?)', [defaultCategories[i], i]);
     db.execute('UPDATE category SET sort = ? WHERE name = ?', [i, defaultCategories[i]]);
   }
+  if (from >= 1) {
+    _merged.forEach((old, into) => _merge(db, old, into));
+  }
   db.userVersion = schemaVersion;
   db.execute('COMMIT');
+}
+
+int? _categoryId(Database db, String name) {
+  final rows = db.select('SELECT id FROM category WHERE name = ?', [name]);
+  return rows.isEmpty ? null : rows.first['id'] as int;
+}
+
+/// Renames old categories to their v3 names, keeping every spend and bill.
+void _refineCategories(Database db) {
+  _renamed.forEach((old, into) {
+    if (_categoryId(db, old) == null) return;
+    if (_categoryId(db, into) == null) {
+      db.execute('UPDATE category SET name = ? WHERE name = ?', [into, old]);
+    } else {
+      _merge(db, old, into);
+    }
+  });
+}
+
+/// Moves every spend and bill from [old] to [into], then drops [old].
+void _merge(Database db, String old, String into) {
+  final from = _categoryId(db, old);
+  final to = _categoryId(db, into);
+  if (from == null || to == null) return;
+  db.execute('UPDATE entry SET category_id = ? WHERE category_id = ?', [to, from]);
+  db.execute('UPDATE bill SET category_id = ? WHERE category_id = ?', [to, from]);
+  db.execute('DELETE FROM category WHERE id = ?', [from]);
 }
 
 const _v1 = [

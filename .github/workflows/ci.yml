@@ -3,6 +3,9 @@ on:
   push:
     branches: ['**']
 
+permissions:
+  contents: write
+
 jobs:
   check:
     runs-on: ubuntu-latest
@@ -16,3 +19,16 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+      - name: Render previews
+        run: flutter test --update-goldens --run-skipped --tags golden
+      - name: Publish previews to the previews branch
+        if: github.ref != 'refs/heads/main'
+        run: |
+          mkdir -p /tmp/prev && cp test/golden/*.png /tmp/prev/
+          git config user.name "stub-ci" && git config user.email "ci@users.noreply.github.com"
+          git fetch --depth=1 origin previews && git checkout -f -B previews FETCH_HEAD || { git checkout --orphan previews && git rm -rqf --cached . ; }
+          git rm -rqf --cached . 2>/dev/null || true
+          git add -f ':(glob)*/*.png' 2>/dev/null || true
+          mkdir -p "${GITHUB_REF_NAME}" && cp /tmp/prev/*.png "${GITHUB_REF_NAME}/"
+          git add -f "${GITHUB_REF_NAME}"/*.png
+          git diff --cached --quiet || { git commit -qm "Previews for ${GITHUB_REF_NAME} ${GITHUB_SHA::7}" && git push -q origin HEAD:previews; }

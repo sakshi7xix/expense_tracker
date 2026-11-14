@@ -41,7 +41,7 @@ class PillButton extends StatelessWidget {
           backgroundColor: StubColors.pop,
           foregroundColor: Colors.white,
           shape: StadiumBorder(),
-          textStyle: TextStyle(fontSize: 16, fontWeight: FontWeight.w800),
+          textStyle: TextStyle(fontFamily: 'Nunito', fontSize: 16, fontWeight: FontWeight.w800),
         ),
         onPressed: onPressed,
         child: Text(label),

@@ -17,6 +17,11 @@ ThemeData buildStubTheme() {
     fontFamily: 'Nunito',
     colorScheme: scheme,
     scaffoldBackgroundColor: StubColors.page,
+    appBarTheme: AppBarTheme(
+      backgroundColor: StubColors.page,
+      surfaceTintColor: StubColors.page,
+      titleTextStyle: TextStyle(fontFamily: 'Nunito', fontSize: 17, fontWeight: FontWeight.w800, color: StubColors.ink),
+    ),
     textTheme: const TextTheme(
       displaySmall: TextStyle(
         fontSize: 36,
