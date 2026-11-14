@@ -72,6 +72,10 @@ jobs:
             [ -f "$f" ] && sed -i -E 's/applicationId( =)? "[^"]+"/applicationId\1 "app.bilby"/' "$f" && grep -n 'applicationId' "$f"
           done
           grep -n 'android:label\|INTERNET' android/app/src/main/AndroidManifest.xml
+          # Android's lint crashes on a Flutter plugin (url_launcher) during release
+          # builds; it checks nothing of ours, so skip it.
+          printf '\nsubprojects {\n    tasks.configureEach {\n        if (name.startsWith("lintVital")) enabled = false\n    }\n}\n' >> android/build.gradle.kts
+          tail -6 android/build.gradle.kts
       - run: flutter pub get
       - name: App icon (Android only here)
         run: |
