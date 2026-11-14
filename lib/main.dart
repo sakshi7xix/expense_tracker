@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show LicenseEntryWithLineBreaks, LicenseRegistry;
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:path/path.dart' as p;
@@ -26,7 +27,7 @@ Future<Auth> _connect() async {
   try {
     await Supabase.initialize(
       url: SupabaseConfig.url,
-      anonKey: SupabaseConfig.publishableKey,
+      publishableKey: SupabaseConfig.publishableKey,
       authOptions: const FlutterAuthClientOptions(localStorage: SecureSessionStorage()),
     );
     return SupabaseAuth(Supabase.instance.client);
