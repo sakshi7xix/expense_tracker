@@ -173,6 +173,25 @@ void main() {
       expect(store.spentInMonth(nov), 64000);
     });
 
+    test('a paid bill can be unticked, which removes its spend', () {
+      final power = store.addBill(name: 'Electricity', amount: 64000, dueDay: 27, categoryId: food);
+      store.payBill(power, day: nov25);
+      expect(store.spentInMonth(nov), 64000);
+      store.unpayBill(power, month: nov);
+      expect(store.spentInMonth(nov), 0);
+      expect(store.billsFor(nov).single.state, BillState.due);
+      expect(store.payBill(power, day: nov25), isNotNull, reason: 'it can be paid again');
+    });
+
+    test('a spend knows who it was split with', () {
+      final riya = store.addFriend('Riya');
+      final id = store.addSpend(title: 'Chai', total: 4000, categoryId: food, day: nov25, friendShares: {riya: 2000});
+      expect(store.splitOf(id), {'Riya': 2000});
+      expect(store.entry(id)!.amount, 2000);
+      store.deleteSpend(id);
+      expect(store.entry(id), isNull);
+    });
+
     test('a bill due on the 31st is charged on the last day of a short month', () {
       store.addBill(name: 'Rent', amount: 280000, dueDay: 31, categoryId: food, autopay: true);
       expect(store.runAutopays(DateTime(2026, 11, 29)), isEmpty);

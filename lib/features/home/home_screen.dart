@@ -9,6 +9,7 @@ import '../../data/models.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
+import '../receipts/spend_receipt.dart';
 
 String _greeting(int hour) => hour < 12
     ? 'Good morning'
@@ -201,6 +202,7 @@ class _SpendRow extends StatelessWidget {
     ].join(' · ');
     return Pressable(
       scale: 0.97,
+      onTap: () => showSpendReceipt(context, entry, category),
       onLongPress: () => _delete(context),
       child: SoftCard(
         child: Row(

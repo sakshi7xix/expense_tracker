@@ -126,13 +126,17 @@ void main() {
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('add_friend.png'));
   });
 
-  testWidgets('weekly receipts preview', (tester) async {
+  testWidgets('spend receipt preview', (tester) async {
     await phone(tester);
-    await tester.tap(find.byKey(const Key('nav-receipts')));
+    await tester.tap(find.text('Chai with Riya'));
     await tester.pumpAndSettle();
-    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('receipts.png'));
-    await tester.dragFrom(const Offset(195, 300), const Offset(95, 0));
-    await tester.pump(const Duration(milliseconds: 16));
-    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('receipts_turning.png'));
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('spend_receipt.png'));
+  });
+
+  testWidgets('statistics preview', (tester) async {
+    await phone(tester);
+    await tester.tap(find.byKey(const Key('nav-statistics')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('stats.png'));
   });
 }

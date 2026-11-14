@@ -147,27 +147,43 @@ void main() {
     expect(tester.widget<Text>(find.byKey(const Key('stats-period'))).data, 'Last 7 days · Today');
   });
 
-  testWidgets('Receipts shows one receipt per week with its total', (tester) async {
+  testWidgets('tapping a spend opens its receipt, which can delete it', (tester) async {
     final model = newModel();
+    final riya = model.store.addFriend('Riya');
     final food = model.store.categories().first.id;
-    model.store.addSpend(title: 'Groceries', total: 32650, categoryId: food, day: model.today);
-    model.store.addSpend(title: 'Books', total: 82000, categoryId: food, day: DateTime(2026, 11, 9));
+    model.store.addSpend(title: 'Chai with Riya', total: 4000, categoryId: food, day: model.today, friendShares: {riya: 2000});
     await start(tester, model);
 
-    await tester.tap(find.byKey(const Key('nav-receipts')));
+    await tester.tap(find.text('Chai with Riya'));
     await tester.pumpAndSettle();
-    String summary() => tester.widget<Text>(find.byKey(const Key('week-summary'))).data!;
-    expect(summary(), 'Week 4 · ₹327');
-    expect(find.text('Groceries'), findsOneWidget);
+    expect(find.text('RECEIPT'), findsOneWidget);
+    expect(find.text('Riya owes you'), findsOneWidget);
+    expect(find.text('YOUR SHARE'), findsOneWidget);
 
-    await tester.tap(find.byKey(const Key('week-3')));
+    await tester.tap(find.byKey(const Key('receipt-delete')));
     await tester.pumpAndSettle();
-    expect(summary(), 'Week 3 · ₹0');
+    expect(model.store.spentInMonth(model.today), 0);
+    expect(model.store.balanceOf(riya), 0);
+    await tester.tap(find.text('Undo'));
+    await tester.pumpAndSettle();
+    expect(model.store.spentInMonth(model.today), 2000);
+  });
 
-    await tester.dragFrom(tester.getCenter(find.byKey(const Key('week-summary'))) - const Offset(0, 160), const Offset(220, 0));
+  testWidgets('a spend can be renamed from its receipt', (tester) async {
+    final model = newModel();
+    final food = model.store.categories().first.id;
+    model.store.addSpend(title: 'Chai', total: 2000, categoryId: food, day: model.today);
+    await start(tester, model);
+
+    await tester.tap(find.text('Chai'));
     await tester.pumpAndSettle();
-    expect(summary(), 'Week 2 · ₹820');
-    expect(find.text('Books'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('receipt-edit')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('edit-title')), 'Masala chai');
+    await tester.tap(find.byKey(const Key('edit-save')));
+    await tester.pumpAndSettle();
+    expect(model.store.entriesForMonth(model.today).single.title, 'Masala chai');
+    expect(find.text('Masala chai'), findsOneWidget);
   });
 
   testWidgets('category is picked from a sheet and saved with the spend', (tester) async {
