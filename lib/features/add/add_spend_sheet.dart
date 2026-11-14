@@ -98,7 +98,9 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
           ],
           ReceiptLine.rule(),
           ReceiptLine('Today so far', formatInr(store.spentOnDay(today), decimals: true)),
-          ReceiptLine('LEFT', formatInr(store.budget - store.spentInMonth(today), decimals: true), bold: true),
+          store.budget > 0
+              ? ReceiptLine('LEFT', formatInr(store.budget - store.spentInMonth(today), decimals: true), bold: true)
+              : ReceiptLine('THIS MONTH', formatInr(store.spentInMonth(today), decimals: true), bold: true),
         ],
       ),
     );

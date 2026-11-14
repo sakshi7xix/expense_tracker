@@ -1,7 +1,6 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app_model.dart';
-import '../../core/budget.dart';
 import '../../core/dates.dart';
 import '../../core/money.dart';
 import '../../core/tokens.dart';
@@ -33,12 +32,11 @@ class HomeScreen extends StatelessWidget {
     final entries = store.entriesForMonth(today);
     final names = {for (final c in store.categories()) c.id: c.name};
     final profileName = model.auth.account?.name;
-    final perDay = perDayPaise(
-      budget: budget,
-      spent: spent,
-      committed: store.committedFor(today),
-      today: today,
-    );
+    // Monday to today.
+    final weekSpent = [
+      for (var d = today.subtract(Duration(days: today.weekday - 1)); !d.isAfter(today); d = d.add(Duration(days: 1)))
+        store.spentOnDay(d),
+    ].fold<int>(0, (a, b) => a + b);
 
     return SafeArea(
       child: ListView(
@@ -83,9 +81,9 @@ class HomeScreen extends StatelessWidget {
             index: 2,
             child: Row(
               children: [
-                Expanded(child: _Tile(value: formatInr(store.spentOnDay(today)), label: 'Spent')),
+                Expanded(child: _Tile(value: formatInr(store.spentOnDay(today)), label: 'Spent today')),
                 SizedBox(width: StubSpace.gap),
-                Expanded(child: _Tile(value: formatInr(perDay), label: 'Per day')),
+                Expanded(child: _Tile(value: formatInr(weekSpent), label: 'This week')),
               ],
             ),
           ),
@@ -122,8 +120,11 @@ class _BalanceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final left = budget - spent;
-    final used = budget <= 0 ? 0.0 : (spent / budget).clamp(0.0, 1.0);
+    // With no budget (no income, or not set yet) the card simply shows what
+    // went out this month.
+    final hasBudget = budget > 0;
+    final left = hasBudget ? budget - spent : spent;
+    final used = hasBudget ? (spent / budget).clamp(0.0, 1.0) : 0.0;
     final faint = TextStyle(color: Colors.white70, fontSize: 12.5, fontWeight: FontWeight.w700);
     return Container(
       padding: EdgeInsets.all(20),
@@ -149,7 +150,8 @@ class _BalanceCard extends StatelessWidget {
               style: TextStyle(color: Colors.white, fontSize: 30, fontWeight: FontWeight.w900),
             ),
           ),
-          Text(left < 0 ? 'Over this month' : 'Left this month', style: faint),
+          Text(!hasBudget ? 'Spent this month' : left < 0 ? 'Over this month' : 'Left this month', style: faint),
+          if (hasBudget) ...[
           SizedBox(height: 20),
           ClipRRect(
             borderRadius: BorderRadius.circular(3),
@@ -173,6 +175,10 @@ class _BalanceCard extends StatelessWidget {
               Text('of ${formatInr(budget)}', style: faint),
             ],
           ),
+          ] else ...[
+            SizedBox(height: 12),
+            Text('No monthly budget. You can add one in Settings.', key: Key('no-budget'), style: faint),
+          ],
         ],
       ),
     );

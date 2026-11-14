@@ -24,7 +24,7 @@ void main() {
   testWidgets('first run asks for a budget, then opens Home', (tester) async {
     final model = newModel();
     await tester.pumpWidget(StubApp(model: model));
-    expect(find.text('How much do you earn in a month?'), findsOneWidget);
+    expect(find.text('What’s your monthly budget?'), findsOneWidget);
     expect(find.text('Welcome to Bilby'), findsOneWidget);
 
     await tester.tap(find.text('Start'));
@@ -37,6 +37,28 @@ void main() {
     expect(model.store.budget, 1500000);
     expect(leftAmount(tester), '₹15,000');
     expect(find.text('No spends yet. Tap + to add one.'), findsOneWidget);
+  });
+
+  testWidgets('no income: skipping the budget shows what was spent instead', (tester) async {
+    final model = newModel();
+    await tester.pumpWidget(StubApp(model: model));
+    await tester.tap(find.byKey(const Key('skip-budget')));
+    await tester.pumpAndSettle();
+    expect(model.store.budget, 0);
+    expect(find.text('Spent this month'), findsOneWidget);
+    expect(find.byKey(const Key('no-budget')), findsOneWidget);
+    expect(find.text('Per day'), findsNothing);
+
+    await tester.tap(find.byKey(const Key('fab-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('amount-field')), '250');
+    await tester.tap(find.byKey(const Key('save-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('THIS MONTH'), findsOneWidget);
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+    expect(leftAmount(tester), '₹250');
+    expect(find.text('This week'), findsOneWidget);
   });
 
   testWidgets('adding a spend prints a receipt and updates Home', (tester) async {
