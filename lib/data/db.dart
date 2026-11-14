@@ -1,11 +1,12 @@
 import 'package:sqlite3/sqlite3.dart';
 
-const schemaVersion = 5;
+const schemaVersion = 6;
 
 const defaultCategories = [
   'Food', 'Groceries', 'Transport', 'Shopping',
   'Rent', 'Electricity', 'Water & gas', 'Internet & mobile', 'Subscriptions',
   'Health', 'Education', 'Personal care', 'Entertainment', 'Trips', 'Gifts',
+  'Investments',
   'Other',
 ];
 

@@ -25,6 +25,17 @@ void main() {
     expect(store.firstRunDone, isFalse);
   });
 
+  test('an existing phone gets the Investments category on upgrade', () {
+    final db = openMemoryDb();
+    db.execute("DELETE FROM category WHERE name = 'Investments'");
+    db.userVersion = 5;
+    migrate(db);
+    final names = StubStore(db).categories().map((c) => c.name).toList();
+    expect(names, defaultCategories);
+    expect(names[names.length - 2], 'Investments', reason: 'just before Other');
+    db.close();
+  });
+
   test('settings persist', () {
     store.budget = 1500000;
     store.firstRunDone = true;
