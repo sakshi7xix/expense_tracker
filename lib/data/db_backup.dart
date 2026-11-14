@@ -18,9 +18,11 @@ void addBackup(Database db, void Function(String table, String column, String ty
     'grp': ('group', 'name, deleted'),
   };
 
+  // No OR REPLACE here: an outer statement's ON CONFLICT would override it.
   String queue(String kind, String bk) =>
-      "INSERT OR REPLACE INTO backup_queue (kind, bk, gen) SELECT '$kind', $bk, "
-      '(SELECT IFNULL(MAX(gen), 0) + 1 FROM backup_queue) WHERE $bk IS NOT NULL;';
+      "UPDATE backup_queue SET gen = (SELECT MAX(gen) + 1 FROM backup_queue) WHERE kind = '$kind' AND bk = $bk; "
+      "INSERT INTO backup_queue (kind, bk, gen) SELECT '$kind', $bk, (SELECT IFNULL(MAX(gen), 0) + 1 FROM backup_queue) "
+      "WHERE $bk IS NOT NULL AND NOT EXISTS (SELECT 1 FROM backup_queue WHERE kind = '$kind' AND bk = $bk);";
 
   tables.forEach((table, spec) {
     final (kind, columns) = spec;
