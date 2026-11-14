@@ -16,3 +16,9 @@ jobs:
       - run: flutter pub get
       - run: flutter analyze
       - run: flutter test
+      - name: Render previews
+        run: flutter test --update-goldens --run-skipped --tags golden
+      - uses: actions/upload-artifact@v4
+        with:
+          name: previews
+          path: test/golden/*.png
