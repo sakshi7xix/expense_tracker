@@ -11,6 +11,13 @@ abstract final class StubMotion {
   static const enter = Curves.easeOutCubic;
   static const settle = Curves.easeOutBack;
 
+  /// Looping background motion (button sheen, floating illustrations). Tests
+  /// turn it off so screens can settle; see test/flutter_test_config.dart.
+  static bool ambient = true;
+
+  /// True when looping motion should run on this screen.
+  static bool loops(BuildContext context) => ambient && !reduced(context);
+
   /// True when the person has asked the phone for less motion.
   static bool reduced(BuildContext context) => MediaQuery.maybeDisableAnimationsOf(context) ?? false;
 }

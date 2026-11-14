@@ -10,6 +10,7 @@ import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
 import '../receipts/spend_receipt.dart';
+import '../settings/settings_screen.dart';
 
 String _greeting(int hour) => hour < 12
     ? 'Good morning'
@@ -30,6 +31,7 @@ class HomeScreen extends StatelessWidget {
     final budget = store.budget;
     final entries = store.entriesForMonth(today);
     final names = {for (final c in store.categories()) c.id: c.name};
+    final profileName = model.auth.account?.name;
     final perDay = perDayPaise(
       budget: budget,
       spent: spent,
@@ -41,8 +43,32 @@ class HomeScreen extends StatelessWidget {
       child: ListView(
         padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 96),
         children: [
-          Text(_greeting(model.now.hour), style: Theme.of(context).textTheme.bodyMedium),
-          Text(monthName(today), style: Theme.of(context).textTheme.titleMedium),
+          Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(_greeting(model.now.hour), style: Theme.of(context).textTheme.bodyMedium),
+                    Text(monthName(today), style: Theme.of(context).textTheme.titleMedium),
+                  ],
+                ),
+              ),
+              Pressable(
+                key: Key('open-settings'),
+                scale: 0.9,
+                label: 'Settings',
+                onTap: () => Navigator.of(context).push(MaterialPageRoute<void>(builder: (_) => SettingsScreen())),
+                child: profileName != null
+                    ? Avatar(name: profileName, radius: 19)
+                    : CircleAvatar(
+                        radius: 19,
+                        backgroundColor: StubColors.surface,
+                        child: Icon(Icons.person_rounded, size: 20, color: StubColors.muted),
+                      ),
+              ),
+            ],
+          ),
           SizedBox(height: 14),
           Entrance(
             child: Pressable(tilt: true, scale: 0.98, haptic: false, onTap: () {}, child: _BalanceCard(budget: budget, spent: spent)),

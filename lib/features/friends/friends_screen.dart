@@ -8,6 +8,7 @@ import '../../data/store.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
+import '../account/sign_in_page.dart';
 import 'activity_view.dart';
 import 'add_friend_dialog.dart';
 import 'friend_sheet.dart';
@@ -28,7 +29,8 @@ class _FriendsScreenState extends State<FriendsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final store = StubScope.of(context).store;
+    final model = StubScope.of(context);
+    final store = model.store;
     final text = Theme.of(context).textTheme;
     return SafeArea(
       child: ListView(
@@ -43,6 +45,34 @@ class _FriendsScreenState extends State<FriendsScreen> {
               Expanded(child: _Total(label: 'You owe', paise: store.youOwe, color: StubColors.owe)),
             ],
           ),
+          if (model.auth.available && model.auth.account == null) ...[
+            SizedBox(height: 10),
+            Pressable(
+              key: Key('friends-sign-in'),
+              scale: 0.97,
+              label: 'Sign in to split on friends\' phones',
+              onTap: () => showSignIn(context),
+              child: Container(
+                padding: EdgeInsets.all(14),
+                decoration: BoxDecoration(color: Color(0xFFFFF1E8), borderRadius: BorderRadius.circular(StubRadius.row)),
+                child: ExcludeSemantics(
+                  child: Row(
+                    children: [
+                      Icon(Icons.cloud_sync_outlined, color: StubColors.pop),
+                      SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'Sign in so friends see your splits on their phones',
+                          style: TextStyle(fontSize: 13.5, fontWeight: FontWeight.w800, color: StubColors.ink),
+                        ),
+                      ),
+                      Icon(Icons.chevron_right_rounded, color: StubColors.pop),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
           SizedBox(height: 12),
           _Segments(value: _tab, onChanged: (t) => setState(() => _tab = t)),
           SizedBox(height: 12),
