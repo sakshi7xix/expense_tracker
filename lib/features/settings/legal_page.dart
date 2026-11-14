@@ -64,7 +64,7 @@ const privacySections = [
 const termsSections = [
   (
     'What this app is',
-    'A way to keep track of your spending and of what friends owe each other. It is a record, not a bank '
+    'Bilby is a way to keep track of your spending and of what friends owe each other. It is a record, not a bank '
         'or a payments service: it never holds or moves money.'
   ),
   (

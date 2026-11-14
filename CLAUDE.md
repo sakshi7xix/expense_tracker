@@ -1,6 +1,6 @@
-# Stub: builder brief
+# Bilby: builder brief
 
-Stub is a calm expense tracker: a monthly budget, quick spend entry with a printed
+Bilby is a calm expense tracker: a monthly budget, quick spend entry with a printed
 receipt, bill splitting with friends, and statistics.
 
 ## Stack
@@ -36,7 +36,9 @@ test/          unit tests for pure logic, one widget test per screen
   Each category and friend has its own colour in `lib/core/categories.dart`.
 - Pop-ups are frosted glass (`lib/ui/kit/glass.dart`: `showGlassSheet`, `GlassDialog`).
   Add a spend opens as a tall glass sheet over Home, not a new page.
-- In the UI, say "receipt", never "stub" (the app name is still to be decided).
+- The app is called **Bilby**. In the UI, say "receipt", never "stub" (the Dart package is still
+  named `stub` internally; that is never shown). Logo: `lib/ui/kit/bilby_mark.dart` (one charcoal
+  line on cream, orange nose); app icon PNGs in `assets/icon/`, generated with flutter_launcher_icons.
 - Tabs: Home, Statistics, Friends. There is no receipts tab: a receipt shows when a spend is
   added and when one is tapped (Edit, Copy, Delete).
 - Keep forms short: anything with more than a couple of options opens a bottom sheet
@@ -77,4 +79,5 @@ flutter run
 - [x] S2 Friends online: invite by email or code (share sheet), friend requests and updates in a bell
   on Home and Friends, shared splits and payments synced both ways (`lib/data/sync.dart`, tested with
   `test/fake_remote.dart`), friends' spends read-only, times in Activity. Groups are not synced yet.
+- [x] S3 Name and logo: Bilby, minimal-line receipt bilby as the app icon and in the app
 - [ ] Edit a spend's amount and split

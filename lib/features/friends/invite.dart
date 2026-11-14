@@ -8,7 +8,7 @@ import '../account/sign_in_page.dart';
 
 /// The message shared with a friend you invite.
 String inviteMessage(String name, String code) =>
-    'Hi $name! I’m keeping our shared expenses in the Expenses app. Get it, sign in, tap the bell and enter my '
+    'Hi $name! I’m keeping our shared expenses on Bilby. Get the app, sign in, tap the bell and enter my '
     'invite code $code so we both see the same splits.';
 
 void _say(ScaffoldMessengerState messenger, String text) {
