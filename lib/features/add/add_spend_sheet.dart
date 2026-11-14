@@ -149,7 +149,7 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
               textAlign: TextAlign.center,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(fontSize: 52, fontWeight: FontWeight.w900, color: StubColors.ink),
-              decoration: InputDecoration(prefixText: '₹', hintText: '0', border: InputBorder.none, errorText: _error),
+              decoration: InputDecoration(prefixText: '₹', hintText: '0', border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none, errorText: _error),
               onChanged: (_) => setState(() {
                 _error = null;
                 if (_split.active) _split.prefill(parseAmount(_amount.text) ?? 0);
@@ -174,7 +174,7 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
                           controller: _title,
                           textCapitalization: TextCapitalization.sentences,
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: StubColors.ink),
-                          decoration: InputDecoration(hintText: 'What was it for?', border: InputBorder.none),
+                          decoration: InputDecoration(hintText: 'What was it for?', border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none),
                         ),
                       ),
                     ],

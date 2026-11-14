@@ -61,7 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   prefixText: '₹ ',
                   hintText: '15000',
                   errorText: _error,
-                  border: InputBorder.none,
+                  border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none,
                 ),
                 onSubmitted: (_) => _start(),
               ),
