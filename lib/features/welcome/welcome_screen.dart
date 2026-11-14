@@ -1,9 +1,13 @@
+import 'dart:math' as math;
+
 import 'package:material_ui/material_ui.dart';
 
 import '../../app_model.dart';
 import '../../core/money.dart';
 import '../../core/tokens.dart';
+import '../../ui/kit/bilby_mark.dart';
 import '../../ui/kit/kit.dart';
+import '../account/sign_in_art.dart';
 
 /// First run: ask what comes in each month, then open the app.
 class WelcomeScreen extends StatefulWidget {
@@ -46,11 +50,20 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Spacer(),
-              Text('Welcome', style: text.titleMedium),
+              LoopBuilder(
+                period: Duration(milliseconds: 3200),
+                builder: (context, t) {
+                  // The ears give a little wiggle once every few seconds.
+                  final k = t < 0.7 ? 0.0 : (t - 0.7) / 0.3;
+                  return BilbyMark(size: 72, ears: 0.22 * math.sin(k * math.pi * 4) * (1 - k));
+                },
+              ),
+              SizedBox(height: 18),
+              Text('Welcome to Bilby', style: text.titleMedium),
               SizedBox(height: 12),
               Text('How much do you earn in a month?', style: text.displaySmall),
               SizedBox(height: 8),
-              Text('Salary, pocket money or allowance. Stub shows how much of it is left.', style: text.bodyMedium),
+              Text('Salary, pocket money or allowance. Bilby shows how much of it is left.', style: text.bodyMedium),
               SizedBox(height: 28),
               TextField(
                 key: Key('budget-field'),

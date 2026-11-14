@@ -15,7 +15,7 @@ class StubApp extends StatelessWidget {
     return StubScope(
       model: model,
       child: MaterialApp(
-        title: 'Expenses',
+        title: 'Bilby',
         debugShowCheckedModeBanner: false,
         theme: buildStubTheme(),
         home: _Root(),

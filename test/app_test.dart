@@ -25,6 +25,7 @@ void main() {
     final model = newModel();
     await tester.pumpWidget(StubApp(model: model));
     expect(find.text('How much do you earn in a month?'), findsOneWidget);
+    expect(find.text('Welcome to Bilby'), findsOneWidget);
 
     await tester.tap(find.text('Start'));
     await tester.pump();

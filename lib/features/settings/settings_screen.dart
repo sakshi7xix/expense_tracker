@@ -6,6 +6,7 @@ import '../../core/config.dart';
 import '../../core/money.dart';
 import '../../core/tokens.dart';
 import '../../data/auth.dart';
+import '../../ui/kit/bilby_mark.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
@@ -53,7 +54,7 @@ class SettingsScreen extends StatelessWidget {
             key: Key('open-licences'),
             icon: Icons.copyright_outlined,
             title: 'Licences',
-            onTap: () => showLicensePage(context: context, applicationName: 'Expenses'),
+            onTap: () => showLicensePage(context: context, applicationName: 'Bilby', applicationIcon: Padding(padding: EdgeInsets.all(8), child: BilbyMark(size: 56))),
           ),
           _Row(
             key: Key('open-help'),
@@ -84,6 +85,10 @@ class SettingsScreen extends StatelessWidget {
               onTap: () => showGlassSheet<void>(context, (_) => _DeleteSheet()),
             ),
           ],
+          SizedBox(height: 28),
+          Center(child: BilbyMark(size: 44)),
+          SizedBox(height: 6),
+          Center(child: Text('Bilby 0.1', style: TextStyle(fontSize: 12, fontWeight: FontWeight.w800, color: StubColors.muted))),
         ],
       ),
     );

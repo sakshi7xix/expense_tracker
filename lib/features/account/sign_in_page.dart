@@ -150,7 +150,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
   @override
   Widget build(BuildContext context) {
     final (title, line) = switch (_step) {
-      _Step.welcome => ('Welcome', 'Your spends, and splits with friends'),
+      _Step.welcome => ('Welcome to Bilby', 'Your spends, and splits with friends'),
       _Step.email => ('Welcome', 'Sign in or create an account'),
       _Step.code => ('Check your email', 'Code sent to ${_email.text.trim()}'),
       _Step.profile => ('Nice to meet you', 'Friends will see this name'),

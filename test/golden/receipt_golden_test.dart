@@ -236,4 +236,15 @@ void main() {
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('notices.png'));
   });
+
+  testWidgets('welcome preview', (tester) async {
+    await _loadFont('Nunito', ['Nunito_600SemiBold.ttf', 'Nunito_700Bold.ttf', 'Nunito_800ExtraBold.ttf', 'Nunito_900Black.ttf']);
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final model = AppModel(StubStore(openMemoryDb()), clock: () => DateTime(2026, 11, 25, 10));
+    await tester.pumpWidget(RepaintBoundary(key: const Key('screen'), child: StubApp(model: model)));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('welcome.png'));
+  });
 }
