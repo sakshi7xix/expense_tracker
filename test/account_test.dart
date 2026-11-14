@@ -108,11 +108,12 @@ void main() {
     expect(find.text('₹20,000'), findsOneWidget);
   });
 
-  testWidgets('the privacy policy says what stays on the phone', (tester) async {
+  testWidgets('the privacy policy says what stays on the phone and what is backed up', (tester) async {
     await openSettings(tester, modelWith(OfflineAuth()));
     await tester.tap(find.byKey(const Key('open-privacy')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('stay on your phone'), findsOneWidget);
+    expect(find.textContaining('stays on your phone'), findsOneWidget);
+    expect(find.textContaining('Only you can read this copy'), findsOneWidget);
   });
 
   testWidgets('Friends offers sign-in when signed out', (tester) async {

@@ -34,17 +34,23 @@ class LegalPage extends StatelessWidget {
 const privacySections = [
   (
     'In short',
-    'Your budget, your own spends and your statistics stay on your phone. If you sign in to split with '
-        'friends, we keep your name, your email and the expenses you split, so the people in them can see them.'
+    'If you don\'t sign in, everything stays on your phone. If you sign in, we keep a private backup of your '
+        'spends so you don\'t lose them, and the expenses you split with friends, so the people in them can see them.'
   ),
   (
-    'What we keep online',
-    'Your name and email address, when you confirmed you are 18 or older, and (once splitting with friends '
-        'online is turned on) the expenses you split: title, amounts, date, who paid and each person\'s share.'
+    'Your private backup',
+    'When you are signed in, your spends, budget, friends\' names, balances and groups are copied to your account. '
+        'Only you can read this copy. Friends never see your own spends. It is used only to bring your data back '
+        'when you reinstall the app or sign in on a new phone.'
+  ),
+  (
+    'What friends see',
+    'Your name, and the expenses you split with them: title, amounts, date, who paid and each person\'s share, '
+        'and payments between you.'
   ),
   (
     'What we never collect',
-    'Your address book. When you add a friend you pick one contact, and only what you pick is used. '
+    'Your address book or contacts. Friends are added only with the code they give you. '
         'We don\'t sell data, show ads or use trackers.'
   ),
   (
@@ -54,8 +60,9 @@ const privacySections = [
   ),
   (
     'Deleting your account',
-    'Settings → Delete account removes your name, email and sign-in. Friends keep expenses you shared with '
-        'them, with your name shown as "Deleted user". What is on your phone stays until you delete the app.'
+    'Settings → Delete account removes your name, email, sign-in and your whole private backup. Friends keep '
+        'expenses you shared with them, with your name shown as "Deleted user". What is on your phone stays until '
+        'you delete the app.'
   ),
   ('Age', 'Online splitting is for people aged 18 or older.'),
   ('Questions and complaints', 'Write to $supportEmail. We reply as soon as we can, and within 30 days.'),

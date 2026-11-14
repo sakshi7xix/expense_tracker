@@ -6,12 +6,14 @@ import '../../core/config.dart';
 import '../../core/money.dart';
 import '../../core/tokens.dart';
 import '../../data/auth.dart';
+import '../../data/store.dart';
 import '../../ui/kit/bilby_mark.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
 import '../account/sign_in_page.dart';
 import '../friends/add_friend_dialog.dart';
+import 'backup_status.dart';
 import 'legal_page.dart';
 
 /// Profile, budget, the legal pages and account controls.
@@ -53,6 +55,29 @@ class SettingsScreen extends StatelessWidget {
             title: 'Monthly budget',
             detail: model.store.budget > 0 ? formatInr(model.store.budget) : 'Not set',
             onTap: () => showDialog<void>(context: context, barrierColor: glassBarrier, builder: (_) => _BudgetDialog()),
+          ),
+          _Row(
+            key: Key('backup'),
+            icon: Icons.cloud_done_outlined,
+            title: 'Backup',
+            detail: backupStatus(
+              signedIn: model.sync != null,
+              running: model.sync?.running ?? false,
+              problem: model.sync?.problem,
+              backedUpAt: model.store.backedUpAt,
+              waiting: model.store.backupWaiting,
+              now: model.now,
+            ),
+            onTap: () {
+              if (model.sync == null) {
+                if (auth.available) showSignIn(context);
+                return;
+              }
+              model.sync!.run();
+              ScaffoldMessenger.of(context)
+                ..hideCurrentSnackBar()
+                ..showSnackBar(SnackBar(content: Text('Backing up now')));
+            },
           ),
           _Label('About'),
           _Row(

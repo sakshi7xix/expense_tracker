@@ -7,7 +7,8 @@ import 'store.dart';
 /// Keeps this phone and the server in step for one signed-in account:
 /// uploads your shared spends and payments, brings in your friends', links
 /// friends when they accept your invite, and holds friend requests for the
-/// bell. Personal spends never leave the phone.
+/// bell. Also keeps a private backup of everything on the phone, which only
+/// this account can read, and brings it back on a new or reinstalled phone.
 class Sync extends ChangeNotifier {
   Sync({required this.store, required this.remote, required this.me, required this.onChanged});
 
@@ -63,6 +64,22 @@ class Sync extends ChangeNotifier {
     var changed = false;
 
     myCode ??= await remote.myCode();
+
+    // A new or reinstalled phone: bring back the backup first, so what
+    // follows matches up with it.
+    if (!store.backupRestored) {
+      final spends = store.restoreBackup(await remote.loadBackup());
+      store.backupRestored = true;
+      if (spends > 0) {
+        store.addNotice(
+          ref: 'restored:$me',
+          title: 'Your spends are back',
+          sub: '$spends ${spends == 1 ? 'spend' : 'spends'} restored from your backup',
+          who: 'Bilby',
+        );
+        changed = true;
+      }
+    }
 
     // People who accepted your requests become friends on this phone.
     final names = <String, String>{};
@@ -147,8 +164,23 @@ class Sync extends ChangeNotifier {
       store.setCursor('payments', p.updatedAt);
     }
 
+    await _backUp();
     requests = await remote.requests();
     if (changed) onChanged();
+  }
+
+  /// Uploads everything changed since the last backup, a batch at a time.
+  Future<void> _backUp() async {
+    var any = false;
+    for (var batch = store.pendingBackup(); !batch.isEmpty; batch = store.pendingBackup()) {
+      await remote.saveBackup(batch.rows);
+      store.backedUp(batch);
+      any = true;
+    }
+    if (any || store.backedUpAt == null) {
+      store.markBackedUp();
+      notifyListeners();
+    }
   }
 
   /// A friend on this phone for an account: links a not-yet-linked friend of

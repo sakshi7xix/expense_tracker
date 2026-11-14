@@ -1,6 +1,8 @@
 import 'package:sqlite3/sqlite3.dart';
 
-const schemaVersion = 6;
+import 'db_backup.dart';
+
+const schemaVersion = 7;
 
 const defaultCategories = [
   'Food', 'Groceries', 'Transport', 'Shopping',
@@ -82,6 +84,7 @@ void migrate(Database db) {
     db.execute('CREATE UNIQUE INDEX IF NOT EXISTS entry_remote ON entry(remote_id) WHERE remote_id IS NOT NULL');
     db.execute('CREATE UNIQUE INDEX IF NOT EXISTS ledger_remote ON ledger(remote_id) WHERE remote_id IS NOT NULL');
   }
+  if (from < 7) addBackup(db, (table, column, type) => _addColumn(db, table, column, type));
   db.userVersion = schemaVersion;
   db.execute('COMMIT');
 }
