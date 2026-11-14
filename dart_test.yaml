@@ -1,3 +1,0 @@
-tags:
-  golden:
-    skip: "Renders a preview image; run in CI with --update-goldens."
