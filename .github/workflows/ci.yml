@@ -2,6 +2,7 @@ name: CI
 on:
   push:
     branches: ['**']
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -44,3 +45,42 @@ jobs:
         run: supabase db start
       - name: Security tests (who can read and change what)
         run: supabase test db
+
+  # Builds an installable Android APK on every push to main (or on demand from
+  # the Actions tab) and puts it on the "android-latest" release, so it can be
+  # downloaded straight to a phone. No Android tools are needed on a Mac.
+  android:
+    if: github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - uses: subosito/flutter-action@v2
+        with:
+          channel: stable
+          cache: true
+      - name: Create the Android project
+        run: |
+          flutter create --platforms=android --project-name stub --org app.bilby .
+          sed -i 's/android:label="stub"/android:label="Bilby"/' android/app/src/main/AndroidManifest.xml
+          grep -q 'android.permission.INTERNET' android/app/src/main/AndroidManifest.xml || \
+            sed -i 's#<application#<uses-permission android:name="android.permission.INTERNET"/>\n    <application#' android/app/src/main/AndroidManifest.xml
+          for f in android/app/build.gradle.kts android/app/build.gradle; do
+            [ -f "$f" ] && sed -i -E 's/applicationId( =)? "[^"]+"/applicationId\1 "app.bilby"/' "$f" && grep -n 'applicationId' "$f"
+          done
+          grep -n 'android:label\|INTERNET' android/app/src/main/AndroidManifest.xml
+      - run: flutter pub get
+      - run: dart run flutter_launcher_icons
+      - run: flutter build apk --release --build-number ${{ github.run_number }}
+      - name: Publish to the android-latest release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp build/app/outputs/flutter-apk/app-release.apk Bilby.apk
+          gh release view android-latest >/dev/null 2>&1 || \
+            gh release create android-latest --title "Bilby for Android (latest)" --notes "Built automatically from main. Download Bilby.apk on your phone and open it to install." --prerelease
+          gh release upload android-latest Bilby.apk --clobber
+          gh release edit android-latest --notes "Built automatically from main at ${GITHUB_SHA::7} (run ${{ github.run_number }}). Download Bilby.apk on your phone and open it to install."
