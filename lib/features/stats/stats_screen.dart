@@ -1,6 +1,8 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app_model.dart';
+import '../../core/budget.dart';
+import '../../core/categories.dart';
 import '../../core/dates.dart';
 import '../../core/money.dart';
 import '../../core/tokens.dart';
@@ -8,6 +10,7 @@ import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
 import 'trend_chart.dart';
+import 'week_bars.dart';
 
 enum StatsRange { week, month, year }
 
@@ -58,6 +61,8 @@ class _StatsScreenState extends State<StatsScreen> {
     final names = {for (final c in store.categories()) c.id: c.name};
     final byCategory = store.categoryTotals(today);
     final monthTotal = byCategory.values.fold<int>(0, (a, b) => a + b);
+    final biggest = byCategory.values.isEmpty ? 1 : byCategory.values.first;
+    final weekBudget = weeklyBudget(store.budget, today);
     final text = Theme.of(context).textTheme;
 
     return SafeArea(
@@ -130,7 +135,25 @@ class _StatsScreenState extends State<StatsScreen> {
               onSelect: (i) => setState(() => _selected = i),
             ),
           ),
+          SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text('Week by week', style: text.titleMedium),
+              if (weekBudget > 0)
+                Text(
+                  'Budget ${formatInr(weekBudget)} a week',
+                  style: TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: StubColors.muted),
+                ),
+            ],
+          ),
           SizedBox(height: 12),
+          WeekBars(
+            totals: weekTotals(store.dailyTotals(today)),
+            budget: weekBudget,
+            current: (today.day - 1) ~/ 7,
+          ),
+          SizedBox(height: 22),
           Text('Top spending', style: text.titleMedium),
           SizedBox(height: 10),
           if (byCategory.isEmpty)
@@ -145,7 +168,9 @@ class _StatsScreenState extends State<StatsScreen> {
               child: Padding(
               padding: EdgeInsets.only(bottom: StubSpace.gap),
               child: SoftCard(
-                child: Row(
+                child: Column(
+                  children: [
+                    Row(
                   children: [
                     CategoryIcon(category: names[entry.key] ?? ''),
                     SizedBox(width: 12),
@@ -167,6 +192,23 @@ class _StatsScreenState extends State<StatsScreen> {
                     Text(
                       '−${formatInr(entry.value)}',
                       style: TextStyle(fontSize: 14.5, fontWeight: FontWeight.w800, color: StubColors.ink),
+                    ),
+                  ],
+                ),
+                    SizedBox(height: 10),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(3),
+                      child: TweenAnimationBuilder<double>(
+                        tween: Tween(begin: 0, end: entry.value / biggest),
+                        duration: Duration(milliseconds: 700),
+                        curve: Curves.easeOutCubic,
+                        builder: (context, v, _) => LinearProgressIndicator(
+                          value: v,
+                          minHeight: 6,
+                          backgroundColor: StubColors.soft,
+                          color: categoryStyle(names[entry.key] ?? '').color,
+                        ),
+                      ),
                     ),
                   ],
                 ),

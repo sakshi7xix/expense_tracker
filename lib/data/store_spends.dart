@@ -79,6 +79,22 @@ extension Spends on StubStore {
     );
   }
 
+  Entry? entry(int entryId) {
+    final rows = db.select('SELECT * FROM entry WHERE id = ? AND deleted = 0', [entryId]);
+    return rows.isEmpty ? null : _entry(rows.first);
+  }
+
+  /// Who else is in a spend: friend name to amount, positive when they owe
+  /// you and negative when you owe them.
+  Map<String, int> splitOf(int entryId) {
+    final rows = db.select(
+      'SELECT f.name AS name, l.amount AS amount FROM ledger l JOIN friend f ON f.id = l.friend_id '
+      "WHERE l.entry_id = ? AND l.deleted = 0 AND l.kind = 'split' ORDER BY l.id",
+      [entryId],
+    );
+    return {for (final row in rows) row['name'] as String: row['amount'] as int};
+  }
+
   /// Newest first.
   List<Entry> entriesForMonth(DateTime month) {
     final rows = db.select(

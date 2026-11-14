@@ -188,3 +188,41 @@ class SheetGrab extends StatelessWidget {
     );
   }
 }
+
+/// A form row that opens something: icon, label, current value, chevron.
+class TapRow extends StatelessWidget {
+  const TapRow({super.key, required this.leading, required this.label, required this.value, required this.onTap});
+
+  final Widget leading;
+  final String label;
+  final String value;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: EdgeInsets.symmetric(vertical: 12),
+        child: Row(
+          children: [
+            leading,
+            SizedBox(width: 12),
+            Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: StubColors.muted)),
+            SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                value,
+                textAlign: TextAlign.right,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: StubColors.ink),
+              ),
+            ),
+            Icon(Icons.chevron_right_rounded, color: StubColors.muted),
+          ],
+        ),
+      ),
+    );
+  }
+}

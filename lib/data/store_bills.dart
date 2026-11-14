@@ -23,10 +23,12 @@ extension Bills on StubStore {
     required int amount,
     required int dueDay,
     required bool autopay,
+    int? categoryId,
   }) {
     db.execute(
-      'UPDATE bill SET name = ?, amount = ?, due_day = ?, autopay = ? WHERE id = ?',
-      [name.trim(), amount, dueDay, autopay ? 1 : 0, billId],
+      'UPDATE bill SET name = ?, amount = ?, due_day = ?, autopay = ?, '
+      'category_id = COALESCE(?, category_id) WHERE id = ?',
+      [name.trim(), amount, dueDay, autopay ? 1 : 0, categoryId, billId],
     );
   }
 
@@ -85,6 +87,19 @@ extension Bills on StubStore {
       [bill.id, monthKey(day), entryId],
     );
     return entryId;
+  }
+
+  /// Undoes [payBill] for the month of [month]: the bill is due again and
+  /// the spend it logged is removed.
+  void unpayBill(int billId, {required DateTime month}) {
+    final rows = db.select(
+      'SELECT entry_id FROM bill_payment WHERE bill_id = ? AND month = ? AND skipped = 0',
+      [billId, monthKey(month)],
+    );
+    if (rows.isEmpty) return;
+    final entryId = rows.first['entry_id'] as int?;
+    if (entryId != null) deleteSpend(entryId);
+    db.execute('DELETE FROM bill_payment WHERE bill_id = ? AND month = ?', [billId, monthKey(month)]);
   }
 
   void skipBill(int billId, {required DateTime month}) {

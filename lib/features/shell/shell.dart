@@ -5,10 +5,10 @@ import '../../core/tokens.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/motion.dart';
 import '../add/add_spend_sheet.dart';
+import '../bills/bills_screen.dart';
 import '../friends/friends_screen.dart';
 import '../home/home_screen.dart';
 import '../stats/stats_screen.dart';
-import '../receipts/receipts_screen.dart';
 
 /// The tab bar, plus the + button on Home only.
 class Shell extends StatefulWidget {
@@ -23,8 +23,8 @@ class _ShellState extends State<Shell> {
 
   static const _tabs = [
     (icon: Icons.home_rounded, label: 'Home'),
-    (icon: Icons.receipt_long_rounded, label: 'Receipts'),
     (icon: Icons.bar_chart_rounded, label: 'Statistics'),
+    (icon: Icons.receipt_long_rounded, label: 'Bills'),
     (icon: Icons.group_rounded, label: 'Friends'),
   ];
 
@@ -49,9 +49,9 @@ class _ShellState extends State<Shell> {
         child: KeyedSubtree(
           key: ValueKey(_tab),
           child: switch (_tab) {
-            0 => HomeScreen(),
-            1 => ReceiptsScreen(),
-            2 => StatsScreen(),
+            0 => HomeScreen(onOpenBills: () => _go(2)),
+            1 => StatsScreen(),
+            2 => BillsScreen(),
             _ => FriendsScreen(),
           },
         ),
