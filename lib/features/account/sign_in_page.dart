@@ -172,7 +172,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
         body: LayoutBuilder(
           builder: (context, box) {
             final w = box.maxWidth;
-            final domeHeight = box.maxHeight * (_step == _Step.welcome ? 0.78 : 0.68);
+            final domeHeight = box.maxHeight * (_step == _Step.welcome ? 0.98 : 0.9);
             return Stack(
               children: [
                 AnimatedPositioned(

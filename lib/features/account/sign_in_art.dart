@@ -57,8 +57,8 @@ class ReceiptOrbitArt extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      width: 230,
-      height: 210,
+      width: 250,
+      height: 230,
       child: LoopBuilder(
         period: Duration(seconds: 14),
         builder: (context, t) {
@@ -69,7 +69,7 @@ class ReceiptOrbitArt extends StatelessWidget {
             children: [
               for (final (i, name) in _friends.indexed)
                 Transform.translate(
-                  offset: Offset.fromDirection((t + i / 3) * 2 * math.pi, 96) * 1 + Offset(0, 6),
+                  offset: Offset.fromDirection((t + i / 3) * 2 * math.pi, 108) + Offset(0, 4),
                   child: Container(
                     decoration: BoxDecoration(shape: BoxShape.circle, border: Border.all(color: Color(0xFF2A2A2F), width: 3)),
                     child: Avatar(name: name, radius: 17),
@@ -78,7 +78,7 @@ class ReceiptOrbitArt extends StatelessWidget {
               Transform.translate(
                 offset: Offset(0, -6 + 6 * sway),
                 child: CurledReceipt(
-                  width: 112,
+                  width: 148,
                   tiltX: 0.28 + 0.05 * sway,
                   tiltY: -0.32 + 0.12 * sway,
                   tiltZ: 0.05 * sway,
@@ -94,8 +94,8 @@ class ReceiptOrbitArt extends StatelessWidget {
                   ],
                 ),
               ),
-              _coin(Offset(-92, -62 + 8 * _wave(t * 4.7)), 0.25 * _wave(t * 4.7)),
-              _coin(Offset(88, 40 + 8 * _wave(t * 4.7, 0.5)), 0.25 * _wave(t * 4.7, 0.5)),
+              _coin(Offset(-110, -20 + 8 * _wave(t * 4.7)), 0.25 * _wave(t * 4.7)),
+              _coin(Offset(104, 58 + 8 * _wave(t * 4.7, 0.5)), 0.25 * _wave(t * 4.7, 0.5)),
             ],
           );
         },
