@@ -1,12 +1,15 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../app_model.dart';
+import '../../core/tokens.dart';
 import '../../data/store.dart';
+import '../../ui/kit/glass.dart';
+import '../../ui/kit/motion.dart';
 
 /// Asks for a name and an optional phone or email, saves the friend and
 /// returns their id, or null if cancelled.
 Future<int?> showAddFriend(BuildContext context) {
-  return showDialog<int>(context: context, builder: (_) => _AddFriendDialog());
+  return showDialog<int>(context: context, barrierColor: glassBarrier, builder: (_) => _AddFriendDialog());
 }
 
 class _AddFriendDialog extends StatefulWidget {
@@ -41,8 +44,8 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text('Add a friend'),
+    return GlassDialog(
+      title: 'Add a friend',
       content: Column(
         mainAxisSize: MainAxisSize.min,
         children: [
@@ -51,18 +54,39 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
             controller: _name,
             autofocus: true,
             textCapitalization: TextCapitalization.words,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: StubColors.ink),
             decoration: InputDecoration(labelText: 'Name', errorText: _error),
           ),
+          SizedBox(height: 6),
           TextField(
             controller: _contact,
+            keyboardType: TextInputType.emailAddress,
+            style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800, color: StubColors.ink),
             decoration: InputDecoration(labelText: 'Phone or email (optional)'),
             onSubmitted: (_) => _save(),
           ),
         ],
       ),
       actions: [
-        TextButton(onPressed: () => Navigator.of(context).pop(), child: Text('Cancel')),
-        FilledButton(key: Key('friend-save'), onPressed: _save, child: Text('Add')),
+        TextButton(
+          onPressed: () => Navigator.of(context).pop(),
+          style: TextButton.styleFrom(foregroundColor: StubColors.muted),
+          child: Text('Cancel', style: TextStyle(fontWeight: FontWeight.w800)),
+        ),
+        SizedBox(width: 6),
+        Pressable(
+          key: Key('friend-save'),
+          scale: 0.94,
+          label: 'Add',
+          onTap: _save,
+          child: Container(
+            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+            decoration: BoxDecoration(color: StubColors.ink, borderRadius: BorderRadius.circular(22)),
+            child: ExcludeSemantics(
+              child: Text('Add', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
+            ),
+          ),
+        ),
       ],
     );
   }

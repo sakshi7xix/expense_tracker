@@ -109,4 +109,20 @@ void main() {
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('categories.png'));
   });
+
+  testWidgets('pop-up previews', (tester) async {
+    final model = await phone(tester);
+    final riya = model.store.friends().first.id;
+    await tester.tap(find.byKey(const Key('fab-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('amount-field')), '120');
+    await tester.tap(find.byKey(const Key('split-row')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('friend-$riya')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('split.png'));
+    await tester.tap(find.byKey(const Key('new-friend')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('add_friend.png'));
+  });
 }

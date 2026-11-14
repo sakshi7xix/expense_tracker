@@ -5,6 +5,7 @@ import '../../core/dates.dart';
 import '../../core/money.dart';
 import '../../core/tokens.dart';
 import '../../data/store.dart';
+import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/paper.dart';
 import 'category_sheet.dart';
@@ -36,13 +37,7 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
   }
 
   Future<void> _openSplit() async {
-    await showModalBottomSheet<void>(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: StubColors.page,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-      builder: (_) => SplitSheet(draft: _split, total: parseAmount(_amount.text)),
-    );
+    await showGlassSheet<void>(context, (_) => SplitSheet(draft: _split, total: parseAmount(_amount.text)));
     if (mounted) setState(() => _error = null);
   }
 
@@ -109,7 +104,7 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
     final category = categories.firstWhere((c) => c.id == categoryId).name;
 
     return Scaffold(
-      appBar: AppBar(title: Text('New spend'), backgroundColor: StubColors.page, centerTitle: true),
+      appBar: AppBar(title: Text('New spend'), centerTitle: true),
       bottomNavigationBar: SafeArea(
         child: Padding(
           padding: EdgeInsets.fromLTRB(24, 8, 24, 16),

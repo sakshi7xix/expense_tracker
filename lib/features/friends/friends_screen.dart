@@ -5,6 +5,7 @@ import '../../core/money.dart';
 import '../../core/tokens.dart';
 import '../../data/models.dart';
 import '../../data/store.dart';
+import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
 import 'add_friend_dialog.dart';
@@ -98,12 +99,7 @@ class _FriendRow extends StatelessWidget {
     return Pressable(
       key: Key('friend-row-${friend.id}'),
       scale: 0.97,
-      onTap: () => showModalBottomSheet<void>(
-        context: context,
-        isScrollControlled: true,
-        backgroundColor: StubColors.page,
-        builder: (_) => _FriendSheet(friendId: friend.id),
-      ),
+      onTap: () => showGlassSheet<void>(context, (_) => _FriendSheet(friendId: friend.id)),
       child: SoftCard(
         child: Row(
           children: [
