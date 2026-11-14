@@ -27,6 +27,14 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
     super.dispose();
   }
 
+  /// No budget: Home just shows what was spent. One can be set later in Settings.
+  void _skip() {
+    StubScope.of(context).write((store) {
+      store.budget = 0;
+      store.firstRunDone = true;
+    });
+  }
+
   void _start() {
     final paise = parseAmount(_budget.text);
     if (paise == null) {
@@ -61,9 +69,9 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               SizedBox(height: 18),
               Text('Welcome to Bilby', style: text.titleMedium),
               SizedBox(height: 12),
-              Text('How much do you earn in a month?', style: text.displaySmall),
+              Text('What’s your monthly budget?', style: text.displaySmall),
               SizedBox(height: 8),
-              Text('Salary, pocket money or allowance. Bilby shows how much of it is left.', style: text.bodyMedium),
+              Text('Your income, pocket money, or the household money you manage. Bilby shows how much is left. No fixed amount? Skip it and just track what you spend.', style: text.bodyMedium),
               SizedBox(height: 28),
               TextField(
                 key: Key('budget-field'),
@@ -80,6 +88,8 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
               ),
               Spacer(flex: 2),
               PillButton(label: 'Start', onPressed: _start),
+              SizedBox(height: 10),
+              FrostButton(key: Key('skip-budget'), label: 'Skip for now', onPressed: _skip),
             ],
           ),
         ),

@@ -35,7 +35,7 @@ class SettingsScreen extends StatelessWidget {
             key: Key('edit-budget'),
             icon: Icons.account_balance_wallet_outlined,
             title: 'Monthly budget',
-            detail: formatInr(model.store.budget),
+            detail: model.store.budget > 0 ? formatInr(model.store.budget) : 'Not set',
             onTap: () => showDialog<void>(context: context, barrierColor: glassBarrier, builder: (_) => _BudgetDialog()),
           ),
           _Label('About'),
@@ -209,7 +209,7 @@ class _BudgetDialog extends StatefulWidget {
 }
 
 class _BudgetDialogState extends State<_BudgetDialog> {
-  late final _field = TextEditingController(text: '${StubScope.of(context).store.budget ~/ 100}');
+  late final _field = TextEditingController(text: StubScope.of(context).store.budget > 0 ? '${StubScope.of(context).store.budget ~/ 100}' : '');
   String? _error;
 
   @override
@@ -219,7 +219,8 @@ class _BudgetDialogState extends State<_BudgetDialog> {
   }
 
   void _save() {
-    final paise = parseAmount(_field.text);
+    // Empty means no budget: Home then shows what was spent this month.
+    final paise = _field.text.trim().isEmpty ? 0 : parseAmount(_field.text);
     if (paise == null) return setState(() => _error = 'Type an amount, like 15000');
     StubScope.of(context).write((s) => s.budget = paise);
     Navigator.of(context).pop();
@@ -235,7 +236,7 @@ class _BudgetDialogState extends State<_BudgetDialog> {
         autofocus: true,
         keyboardType: TextInputType.numberWithOptions(decimal: true),
         style: TextStyle(fontSize: 22, fontWeight: FontWeight.w900, color: StubColors.ink),
-        decoration: InputDecoration(prefixText: '₹ ', errorText: _error),
+        decoration: InputDecoration(prefixText: '₹ ', errorText: _error, helperText: 'Leave it empty for no budget'),
         onSubmitted: (_) => _save(),
       ),
       actions: [
