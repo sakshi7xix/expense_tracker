@@ -7,6 +7,7 @@ import '../../core/tokens.dart';
 import '../../data/models.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
+import '../../ui/kit/motion.dart';
 
 String _greeting(int hour) => hour < 12
     ? 'Good morning'
@@ -41,19 +42,24 @@ class HomeScreen extends StatelessWidget {
           Text(_greeting(model.now.hour), style: Theme.of(context).textTheme.bodyMedium),
           Text('stub', style: Theme.of(context).textTheme.titleMedium),
           SizedBox(height: 14),
-          _BalanceCard(budget: budget, spent: spent),
-          SizedBox(height: 20),
-          Text('Today', style: Theme.of(context).textTheme.titleMedium),
-          SizedBox(height: 10),
-          Row(
-            children: [
-              Expanded(child: _Tile(value: formatInr(store.spentOnDay(today)), label: 'Spent')),
-              SizedBox(width: StubSpace.gap),
-              Expanded(child: _Tile(value: formatInr(perDay), label: 'Per day')),
-            ],
+          Entrance(
+            child: Pressable(tilt: true, scale: 0.98, haptic: false, onTap: () {}, child: _BalanceCard(budget: budget, spent: spent)),
           ),
           SizedBox(height: 20),
-          Text('This month', style: Theme.of(context).textTheme.titleMedium),
+          Entrance(index: 1, child: Text('Today', style: Theme.of(context).textTheme.titleMedium)),
+          SizedBox(height: 10),
+          Entrance(
+            index: 2,
+            child: Row(
+              children: [
+                Expanded(child: _Tile(value: formatInr(store.spentOnDay(today)), label: 'Spent')),
+                SizedBox(width: StubSpace.gap),
+                Expanded(child: _Tile(value: formatInr(perDay), label: 'Per day')),
+              ],
+            ),
+          ),
+          SizedBox(height: 20),
+          Entrance(index: 3, child: Text('This month', style: Theme.of(context).textTheme.titleMedium)),
           SizedBox(height: 10),
           if (entries.isEmpty)
             Padding(
@@ -62,10 +68,14 @@ class HomeScreen extends StatelessWidget {
                 child: Text('No spends yet. Tap + to add one.', style: Theme.of(context).textTheme.bodyMedium),
               ),
             ),
-          for (final entry in entries)
-            Padding(
-              padding: EdgeInsets.only(bottom: StubSpace.gap),
-              child: _SpendRow(entry: entry, category: names[entry.categoryId] ?? ''),
+          for (final (i, entry) in entries.indexed)
+            Entrance(
+              key: ValueKey(entry.id),
+              index: 4 + i,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: StubSpace.gap),
+                child: _SpendRow(entry: entry, category: names[entry.categoryId] ?? ''),
+              ),
             ),
         ],
       ),
@@ -188,7 +198,8 @@ class _SpendRow extends StatelessWidget {
       if (entry.isAutopay) 'Autopay',
       if (entry.isSplit) 'Split',
     ].join(' · ');
-    return GestureDetector(
+    return Pressable(
+      scale: 0.97,
       onLongPress: () => _delete(context),
       child: SoftCard(
         child: Row(

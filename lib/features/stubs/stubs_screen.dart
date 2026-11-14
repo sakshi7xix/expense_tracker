@@ -6,6 +6,7 @@ import '../../core/money.dart';
 import '../../core/tokens.dart';
 import '../../data/models.dart';
 import '../../data/store.dart';
+import '../../ui/kit/motion.dart';
 import '../../ui/kit/paper.dart';
 
 /// One receipt per week of the month. Tap a week to unfold it.
@@ -46,7 +47,10 @@ class _StubsScreenState extends State<StubsScreen> {
           ),
           SizedBox(height: 16),
           for (var week = currentWeek; week >= 0; week--)
-            Padding(
+            Entrance(
+              index: currentWeek - week,
+              rise: 26,
+              child: Padding(
               padding: EdgeInsets.only(bottom: 16),
               child: _WeekStub(
                 key: Key('week-${week + 1}'),
@@ -57,6 +61,7 @@ class _StubsScreenState extends State<StubsScreen> {
                 open: week == open,
                 onTap: () => setState(() => _open = week == open ? -1 : week),
               ),
+            ),
             ),
         ],
       ),
@@ -89,7 +94,8 @@ class _WeekStub extends StatelessWidget {
     final last = (first + 6).clamp(1, daysInMonth(month));
     final gap = weeklyBudget - total;
     final shown = entries.take(6).toList();
-    return GestureDetector(
+    return Pressable(
+      scale: 0.98,
       onTap: onTap,
       child: AnimatedScale(
         scale: open ? 1 : 0.96,

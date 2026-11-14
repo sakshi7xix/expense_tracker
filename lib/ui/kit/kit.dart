@@ -1,7 +1,9 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/categories.dart';
 import '../../core/tokens.dart';
+import 'motion.dart';
 
 /// White rounded surface used for rows, tiles and form cards.
 class SoftCard extends StatelessWidget {
@@ -33,18 +35,40 @@ class PillButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SizedBox(
-      height: 54,
-      width: double.infinity,
-      child: FilledButton(
-        style: FilledButton.styleFrom(
-          backgroundColor: StubColors.pop,
-          foregroundColor: Colors.white,
-          shape: StadiumBorder(),
-          textStyle: TextStyle(fontFamily: 'Nunito', fontSize: 16, fontWeight: FontWeight.w800),
+    final enabled = onPressed != null;
+    return Pressable(
+      scale: 0.96,
+      haptic: false,
+      label: label,
+      onTap: !enabled
+          ? null
+          : () {
+              HapticFeedback.lightImpact();
+              onPressed!();
+            },
+      child: AnimatedContainer(
+        duration: StubMotion.base,
+        height: 54,
+        width: double.infinity,
+        alignment: Alignment.center,
+        decoration: BoxDecoration(
+          color: enabled ? StubColors.pop : StubColors.soft,
+          borderRadius: BorderRadius.circular(StubRadius.pill),
+          boxShadow: enabled
+              ? [BoxShadow(color: StubColors.pop.withValues(alpha: 0.32), blurRadius: 18, offset: Offset(0, 8))]
+              : const [],
         ),
-        onPressed: onPressed,
-        child: Text(label),
+        child: ExcludeSemantics(
+          child: Text(
+            label,
+            style: TextStyle(
+              fontFamily: 'Nunito',
+              fontSize: 16,
+              fontWeight: FontWeight.w800,
+              color: enabled ? Colors.white : StubColors.muted,
+            ),
+          ),
+        ),
       ),
     );
   }
@@ -61,12 +85,13 @@ class ChoicePill extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      button: true,
       selected: selected,
-      child: GestureDetector(
+      child: Pressable(
+        scale: 0.92,
         onTap: onTap,
         child: AnimatedContainer(
-          duration: Duration(milliseconds: 150),
+          duration: Duration(milliseconds: 220),
+          curve: Curves.easeOutCubic,
           padding: EdgeInsets.symmetric(horizontal: 14, vertical: 9),
           decoration: BoxDecoration(
             color: selected ? StubColors.ink : StubColors.soft,
