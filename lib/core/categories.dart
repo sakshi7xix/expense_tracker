@@ -16,6 +16,7 @@ const categoryGroups = <(String, List<String>)>[
   ('Everyday', ['Food', 'Groceries', 'Transport', 'Shopping']),
   ('Home & bills', ['Rent', 'Electricity', 'Water & gas', 'Internet & mobile', 'Subscriptions']),
   ('Life', ['Health', 'Education', 'Personal care', 'Entertainment', 'Trips', 'Gifts']),
+  ('Money', ['Investments']),
   ('', ['Other']),
 ];
 
@@ -35,6 +36,7 @@ const _styles = {
   'Entertainment': CategoryStyle(Icons.movie_rounded, Color(0xFF7C4DFF), Color(0xFFEFE9FF)),
   'Trips': CategoryStyle(Icons.flight_takeoff_rounded, Color(0xFF0B8F6A), Color(0xFFE2F4EE)),
   'Gifts': CategoryStyle(Icons.card_giftcard_rounded, Color(0xFFD9480F), Color(0xFFFFEDE3)),
+  'Investments': CategoryStyle(Icons.trending_up_rounded, Color(0xFF1F8A70), Color(0xFFE1F3EC)),
   'Other': _other,
 };
 
