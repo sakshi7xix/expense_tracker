@@ -4,11 +4,13 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../core/dates.dart';
 import 'models.dart';
+import 'remote.dart';
 
 part 'store_bills.dart';
 part 'store_friends.dart';
 part 'store_groups.dart';
 part 'store_spends.dart';
+part 'store_sync.dart';
 
 /// All reads and writes go through here. Synchronous, local-only.
 class StubStore {

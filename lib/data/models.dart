@@ -15,6 +15,7 @@ class Entry {
     required this.day,
     this.billId,
     this.groupId,
+    this.addedBy,
   });
   final int id;
   final String title;
@@ -24,6 +25,9 @@ class Entry {
   final String day;
   final int? billId;
   final int? groupId;
+
+  /// Account id of the friend who added this shared spend; null when you did.
+  final String? addedBy;
 
   bool get isSplit => total != amount;
   bool get isAutopay => billId != null;
@@ -54,6 +58,7 @@ class LedgerItem {
     required this.amount,
     required this.isPayment,
     required this.day,
+    this.createdAt = 0,
   });
   final int id;
   final int friendId;
@@ -62,6 +67,9 @@ class LedgerItem {
   final int amount;
   final bool isPayment;
   final String day;
+
+  /// When it was recorded on this phone, in milliseconds since 1970.
+  final int createdAt;
 }
 
 class Group {
@@ -101,4 +109,23 @@ class BillStatus {
   final bool autopay;
   final int categoryId;
   final BillState state;
+}
+
+/// Something for the bell: a friend added a split, paid, or accepted.
+class Notice {
+  const Notice({required this.id, required this.title, required this.sub, required this.who, required this.at, required this.seen});
+  final int id;
+  final String title;
+  final String sub;
+  final String who;
+  final int at;
+  final bool seen;
+}
+
+/// A friend you invited who hasn't joined yet.
+class WaitingInvite {
+  const WaitingInvite({required this.friendId, required this.name, required this.code});
+  final int friendId;
+  final String name;
+  final String code;
 }

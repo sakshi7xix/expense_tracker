@@ -71,6 +71,9 @@ class _ActivityRow extends StatelessWidget {
     final amount = item.amount.abs();
     final money = formatInr(amount, decimals: amount % 100 != 0);
     // A payment makes the balance move the other way to who paid.
+    final at = DateTime.fromMillisecondsSinceEpoch(item.createdAt);
+    final h = at.hour % 12 == 0 ? 12 : at.hour % 12;
+    final time = item.createdAt == 0 ? '' : ' · $h:${at.minute.toString().padLeft(2, '0')} ${at.hour < 12 ? 'am' : 'pm'}';
     final line = item.isPayment
         ? 'Settled $money'
         : item.amount > 0
@@ -93,7 +96,13 @@ class _ActivityRow extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: StubColors.ink),
                 ),
-                Text(line, style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700, color: colour)),
+                Text.rich(
+                  TextSpan(children: [
+                    TextSpan(text: line, style: TextStyle(color: colour)),
+                    TextSpan(text: time, style: TextStyle(color: StubColors.muted)),
+                  ]),
+                  style: TextStyle(fontSize: 11.5, fontWeight: FontWeight.w700),
+                ),
               ],
             ),
           ),

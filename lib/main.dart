@@ -12,13 +12,21 @@ import 'data/auth.dart';
 import 'data/db.dart';
 import 'data/store.dart';
 import 'data/supabase_auth.dart';
+import 'data/supabase_remote.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
   _registerFontLicences();
   final dir = await getApplicationDocumentsDirectory();
   final store = StubStore(openFileDb(p.join(dir.path, 'stub.db')));
-  runApp(StubApp(model: AppModel(store, auth: await _connect())));
+  final auth = await _connect();
+  runApp(StubApp(
+    model: AppModel(
+      store,
+      auth: auth,
+      remoteFor: auth is SupabaseAuth ? (_) => SupabaseRemote(Supabase.instance.client) : null,
+    ),
+  ));
 }
 
 /// Signing in is optional, so if the online service can't start the app

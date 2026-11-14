@@ -38,6 +38,10 @@ Future<void> showSpendReceipt(BuildContext context, Entry entry, String category
   final model = StubScope.of(context);
   final messenger = ScaffoldMessenger.of(context);
   final lines = spendLines(entry, model.store.splitOf(entry.id));
+  // A shared spend a friend added can only be changed or deleted by them.
+  final addedBy = entry.addedBy == null
+      ? null
+      : model.store.friends().where((f) => model.store.userOfFriend(f.id) == entry.addedBy).firstOrNull?.name ?? 'a friend';
   HapticFeedback.lightImpact();
 
   void delete(BuildContext dialog) {
@@ -130,11 +134,18 @@ Future<void> showSpendReceipt(BuildContext context, Entry entry, String category
                         ),
                       ),
                       SizedBox(height: 28),
+                      if (addedBy != null)
+                        Padding(
+                          padding: EdgeInsets.only(bottom: 12),
+                          child: Text('Added by $addedBy. Only they can change it.',
+                              style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w700, color: StubColors.muted, decoration: TextDecoration.none)),
+                        ),
                       Material(
                         type: MaterialType.transparency,
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
+                            if (addedBy == null) ...[
                             _Action(
                               key: Key('receipt-edit'),
                               icon: Icons.edit_rounded,
@@ -145,7 +156,9 @@ Future<void> showSpendReceipt(BuildContext context, Entry entry, String category
                               },
                             ),
                             SizedBox(width: 8),
+                            ],
                             _Action(key: Key('receipt-copy'), icon: Icons.copy_rounded, label: 'Copy', onTap: () => copy(dialog)),
+                            if (addedBy == null) ...[
                             SizedBox(width: 8),
                             _Action(
                               key: Key('receipt-delete'),
@@ -154,6 +167,7 @@ Future<void> showSpendReceipt(BuildContext context, Entry entry, String category
                               color: StubColors.owe,
                               onTap: () => delete(dialog),
                             ),
+                            ],
                           ],
                         ),
                       ),

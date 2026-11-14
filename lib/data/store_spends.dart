@@ -27,10 +27,13 @@ extension Spends on StubStore {
     }
     return _tx(() {
       final entryId = _insert(
-        'INSERT INTO entry (title, amount, total, category_id, day, created_at, bill_id, grp_id) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-        [title, mine, total, categoryId, dayKey(day), _now, billId, groupId],
+        'INSERT INTO entry (title, amount, total, category_id, day, created_at, bill_id, grp_id, dirty) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        [title, mine, total, categoryId, dayKey(day), _now, billId, groupId, friendShares.isEmpty ? 0 : 1],
       );
+      friendShares.forEach((friendId, share) {
+        db.execute('INSERT INTO entry_share (entry_id, friend_id, share) VALUES (?, ?, ?)', [entryId, friendId, share]);
+      });
       void lend(int friendId, int amount) {
         if (amount == 0) return;
         db.execute(
@@ -56,14 +59,14 @@ extension Spends on StubStore {
 
   void _setDeleted(int entryId, int flag) {
     _tx(() {
-      db.execute('UPDATE entry SET deleted = ? WHERE id = ?', [flag, entryId]);
+      db.execute('UPDATE entry SET deleted = ?, dirty = 1 WHERE id = ?', [flag, entryId]);
       db.execute('UPDATE ledger SET deleted = ? WHERE entry_id = ?', [flag, entryId]);
     });
   }
 
   void renameSpend(int entryId, {required String title, required int categoryId}) {
     db.execute(
-      'UPDATE entry SET title = ?, category_id = ? WHERE id = ?',
+      'UPDATE entry SET title = ?, category_id = ?, dirty = 1 WHERE id = ?',
       [title, categoryId, entryId],
     );
   }
@@ -78,6 +81,7 @@ extension Spends on StubStore {
       day: row['day'] as String,
       billId: row['bill_id'] as int?,
       groupId: row['grp_id'] as int?,
+      addedBy: row['remote_by'] as String?,
     );
   }
 

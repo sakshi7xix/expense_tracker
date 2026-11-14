@@ -16,6 +16,7 @@ import 'package:stub/ui/kit/curled_receipt.dart';
 import 'package:stub/ui/kit/paper.dart';
 
 import '../fake_auth.dart';
+import '../fake_remote.dart';
 
 Future<void> _loadFont(String family, List<String> files) async {
   final loader = FontLoader(family);
@@ -201,5 +202,38 @@ void main() {
     await tester.tap(find.byKey(const Key('signin-create')));
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('settings.png'));
+  });
+
+  testWidgets('bell preview', (tester) async {
+    final server = FakeServer()
+      ..addUser('A', 'you@example.com', 'Sakshi')
+      ..addUser('K', 'kabir@example.com', 'Kabir')
+      ..addUser('R', 'riya@example.com', 'Riya');
+    await FakeRemote(server, 'K').createInvite('Sakshi', 'you@example.com');
+    server.friendships.add('A|R');
+    await FakeRemote(server, 'R').saveExpense(
+        id: 'x1', title: 'Movie night', total: 80000, payer: 'R', day: '2026-11-24', shares: {'A': 40000, 'R': 40000});
+    await _loadFont('Nunito', ['Nunito_600SemiBold.ttf', 'Nunito_700Bold.ttf', 'Nunito_800ExtraBold.ttf', 'Nunito_900Black.ttf']);
+    await _loadFont('IBMPlexMono', ['IBMPlexMono_400Regular.ttf', 'IBMPlexMono_500Medium.ttf']);
+    debugDisableShadows = false;
+    addTearDown(() => debugDisableShadows = true);
+    tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+    tester.view.devicePixelRatio = 3;
+    addTearDown(tester.view.reset);
+    final store = StubStore(openMemoryDb())
+      ..budget = 1500000
+      ..firstRunDone = true;
+    final model = AppModel(store,
+        clock: () => DateTime(2026, 11, 25, 10),
+        auth: FakeAuth(signedIn: const Account(id: 'A', email: 'you@example.com', name: 'Sakshi')),
+        remoteFor: (id) => FakeRemote(server, id));
+    await tester.pumpWidget(RepaintBoundary(key: const Key('screen'), child: StubApp(model: model)));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('nav-friends')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('friends_bell.png'));
+    await tester.tap(find.byKey(const Key('bell')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('notices.png'));
   });
 }
