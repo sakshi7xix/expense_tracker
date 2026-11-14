@@ -26,7 +26,8 @@ jobs:
         run: |
           mkdir -p /tmp/prev && cp test/golden/*.png /tmp/prev/
           git config user.name "stub-ci" && git config user.email "ci@users.noreply.github.com"
-          git fetch --depth=1 origin previews && git checkout -B previews FETCH_HEAD || git checkout --orphan previews
-          git rm -rq --cached . 2>/dev/null || true
+          git fetch --depth=1 origin previews && git checkout -f -B previews FETCH_HEAD || { git checkout --orphan previews && git rm -rqf --cached . ; }
+          git rm -rqf --cached . 2>/dev/null || true
+          git add -f ':(glob)*/*.png' 2>/dev/null || true
           mkdir -p "${GITHUB_REF_NAME}" && cp /tmp/prev/*.png "${GITHUB_REF_NAME}/"
           git add -f "${GITHUB_REF_NAME}"/*.png && git commit -qm "Previews for ${GITHUB_REF_NAME} ${GITHUB_SHA::7}" && git push -q origin HEAD:previews

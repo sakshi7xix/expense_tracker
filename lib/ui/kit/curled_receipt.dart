@@ -23,11 +23,11 @@ class CurledReceipt extends StatelessWidget {
     required this.lines,
     this.subtitle,
     this.width = 250,
-    this.tiltX = 0.16,
-    this.tiltY = -0.26,
-    this.tiltZ = 0.03,
-    this.curlTop = 4,
-    this.curlBottom = -6,
+    this.tiltX = 0.32,
+    this.tiltY = -0.34,
+    this.tiltZ = 0.04,
+    this.curlTop = 7,
+    this.curlBottom = -10,
   });
 
   final List<ReceiptLine> lines;
@@ -101,11 +101,11 @@ class CurledReceipt extends StatelessWidget {
     var bend = angles.fold<double>(0, (a, b) => a + b);
     for (var i = n - 1; i >= 0; i--) {
       final strip = strips[i];
-      final light = (95.5 + bend * 0.28).clamp(86.0, 99.0) / 100;
+      final light = (96 + bend * 0.45).clamp(80.0, 99.5) / 100;
       bend -= angles[i];
       final base = HSLColor.fromAHSL(1, 50, 0.08, light).toColor();
       Widget paper = Container(
-        height: strip.height + 0.6,
+        height: strip.height + 1,
         padding: EdgeInsets.symmetric(horizontal: 16),
         decoration: BoxDecoration(
           gradient: LinearGradient(
@@ -131,7 +131,7 @@ class CurledReceipt extends StatelessWidget {
           : Transform(
               alignment: Alignment.topCenter,
               transform: Matrix4.identity()
-                ..translateByDouble(0, -0.6, 0, 1)
+                ..translateByDouble(0, -1, 0, 1)
                 ..rotateX(angles[i] * math.pi / 180),
               child: content,
             );
