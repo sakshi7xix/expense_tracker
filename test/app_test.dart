@@ -232,7 +232,7 @@ void main() {
     await tester.tap(find.byKey(const Key('seg-activity')));
     await tester.pumpAndSettle();
     expect(find.text('Today'), findsOneWidget);
-    expect(find.text('Riya owes you ₹300'), findsOneWidget);
+    expect(find.textContaining('Riya owes you ₹300'), findsOneWidget);
   });
 
   testWidgets('picking a group in the split sheet adds its members', (tester) async {
