@@ -124,7 +124,7 @@ class CurledReceipt extends StatelessWidget {
       if (strip.torn) paper = ClipPath(clipper: const ZigzagClipper(tooth: 4), child: paper);
       final content = Column(
         mainAxisSize: MainAxisSize.min,
-        children: [SizedBox(width: width, child: paper), ?below],
+        children: [SizedBox(width: width, child: paper), if (below != null) below],
       );
       below = i == 0
           ? content
