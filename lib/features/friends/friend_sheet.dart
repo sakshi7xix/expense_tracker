@@ -124,14 +124,12 @@ class _FriendSheetState extends State<FriendSheet> {
             ),
           ],
           if (balance > 0) ...[
-            SizedBox(height: 4),
-            Center(
-              child: TextButton.icon(
-                key: Key('remind-button'),
-                onPressed: () => _remind(friend.name, balance),
-                icon: Icon(Icons.notifications_active_outlined, size: 18),
-                label: Text('Send a reminder', style: TextStyle(fontWeight: FontWeight.w800)),
-              ),
+            SizedBox(height: 10),
+            FrostButton(
+              key: Key('remind-button'),
+              icon: Icons.notifications_active_outlined,
+              label: 'Send a reminder',
+              onPressed: () => _remind(friend.name, balance),
             ),
           ],
         ],

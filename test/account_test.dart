@@ -42,6 +42,9 @@ void main() {
 
     await tester.tap(find.byKey(const Key('settings-sign-in')));
     await tester.pumpAndSettle();
+    expect(find.text('Split with friends'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('signin-start')));
+    await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('signin-email')), 'asha@example');
     await tester.tap(find.byKey(const Key('signin-send')));
     await tester.pump();
@@ -60,20 +63,16 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.text('About you'), findsOneWidget);
 
-    await tester.enterText(find.byKey(const Key('signin-name')), 'Asha');
-    await tester.ensureVisible(find.byKey(const Key('signin-create')));
     await tester.tap(find.byKey(const Key('signin-create')));
     await tester.pump();
-    expect(find.textContaining('18 or older to use'), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const Key('signin-adult')));
-    await tester.tap(find.byKey(const Key('signin-adult')));
-    await tester.pump();
-    await tester.ensureVisible(find.byKey(const Key('signin-create')));
+    expect(find.text('Add your name'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('signin-name')), 'Asha');
     await tester.tap(find.byKey(const Key('signin-create')));
     await tester.pumpAndSettle();
 
     expect(model.auth.account?.name, 'Asha');
     expect(profileName(tester), 'Asha');
+    await tester.scrollUntilVisible(find.byKey(const Key('delete-account')), 200);
     expect(find.byKey(const Key('delete-account')), findsOneWidget);
   });
 
@@ -83,7 +82,7 @@ void main() {
     await openSettings(tester, model);
     expect(profileName(tester), 'Asha');
 
-    await tester.ensureVisible(find.byKey(const Key('delete-account')));
+    await tester.scrollUntilVisible(find.byKey(const Key('delete-account')), 200);
     await tester.tap(find.byKey(const Key('delete-account')));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('confirm-delete')));
@@ -125,5 +124,24 @@ void main() {
     await tester.tap(find.byKey(const Key('friends-sign-in')));
     await tester.pumpAndSettle();
     expect(find.text('Split with friends'), findsOneWidget);
+    await tester.tap(find.byKey(const Key('signin-later')));
+    await tester.pumpAndSettle();
+    expect(find.text('Split with friends'), findsNothing);
+  });
+
+  testWidgets('a returning person skips About you', (tester) async {
+    final auth = FakeAuth()..names['asha@example.com'] = 'Asha';
+    final model = modelWith(auth);
+    await openSettings(tester, model);
+    await tester.tap(find.byKey(const Key('settings-sign-in')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('signin-start')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('signin-email')), 'asha@example.com');
+    await tester.tap(find.byKey(const Key('signin-send')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('signin-code')), '123456');
+    await tester.pumpAndSettle();
+    expect(profileName(tester), 'Asha');
   });
 }

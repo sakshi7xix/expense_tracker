@@ -1,9 +1,10 @@
-import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/categories.dart';
 import '../../core/tokens.dart';
 import 'motion.dart';
+
+export 'buttons.dart';
 
 /// White rounded surface used for rows, tiles and form cards.
 class SoftCard extends StatelessWidget {
@@ -22,54 +23,6 @@ class SoftCard extends StatelessWidget {
         boxShadow: [BoxShadow(color: Color(0x0D1E1E28), blurRadius: 12, offset: Offset(0, 4))],
       ),
       child: child,
-    );
-  }
-}
-
-/// The one primary action on a screen.
-class PillButton extends StatelessWidget {
-  const PillButton({super.key, required this.label, required this.onPressed});
-
-  final String label;
-  final VoidCallback? onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final enabled = onPressed != null;
-    return Pressable(
-      scale: 0.96,
-      haptic: false,
-      label: label,
-      onTap: !enabled
-          ? null
-          : () {
-              HapticFeedback.lightImpact();
-              onPressed!();
-            },
-      child: AnimatedContainer(
-        duration: StubMotion.base,
-        height: 54,
-        width: double.infinity,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: enabled ? StubColors.pop : StubColors.soft,
-          borderRadius: BorderRadius.circular(StubRadius.pill),
-          boxShadow: enabled
-              ? [BoxShadow(color: StubColors.pop.withValues(alpha: 0.32), blurRadius: 18, offset: Offset(0, 8))]
-              : const [],
-        ),
-        child: ExcludeSemantics(
-          child: Text(
-            label,
-            style: TextStyle(
-              fontFamily: 'Nunito',
-              fontSize: 16,
-              fontWeight: FontWeight.w800,
-              color: enabled ? Colors.white : StubColors.muted,
-            ),
-          ),
-        ),
-      ),
     );
   }
 }

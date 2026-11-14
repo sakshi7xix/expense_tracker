@@ -8,7 +8,7 @@ import '../../data/store.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
-import '../account/sign_in_sheet.dart';
+import '../account/sign_in_page.dart';
 import 'activity_view.dart';
 import 'add_friend_dialog.dart';
 import 'friend_sheet.dart';

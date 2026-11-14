@@ -9,7 +9,7 @@ import '../../data/auth.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
-import '../account/sign_in_sheet.dart';
+import '../account/sign_in_page.dart';
 import 'legal_page.dart';
 
 /// Profile, budget, the legal pages and account controls.
