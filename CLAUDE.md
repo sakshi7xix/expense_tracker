@@ -1,7 +1,7 @@
 # Stub: builder brief
 
 Stub is a calm expense tracker: a monthly budget, quick spend entry with a printed
-receipt, bill splitting with friends, bills and autopay, and statistics.
+receipt, bill splitting with friends, and statistics.
 
 ## Stack
 - Flutter stable 3.50 or newer (iOS and Android), Dart 3. Material widgets come from the
@@ -20,7 +20,7 @@ lib/
   core/        tokens, theme, money, split maths
   data/        db schema, models, StubStore (spends, friends, bills)
   ui/kit/      shared widgets: card, sheet, pill button…   (D1)
-  features/    home, add (a glass sheet), receipts (one spend, opened), stats, bills, friends
+  features/    home, add (a glass sheet), receipts (one spend, opened), stats, friends
 test/          unit tests for pure logic, one widget test per screen
 ```
 
@@ -33,8 +33,8 @@ test/          unit tests for pure logic, one widget test per screen
 - Pop-ups are frosted glass (`lib/ui/kit/glass.dart`: `showGlassSheet`, `GlassDialog`).
   Add a spend opens as a tall glass sheet over Home, not a new page.
 - In the UI, say "receipt", never "stub" (the app name is still to be decided).
-- Tabs: Home, Statistics, Bills, Friends. There is no receipts tab: a receipt shows when a
-  spend is added and when one is tapped (Edit, Copy, Delete). Weekly totals live in Statistics.
+- Tabs: Home, Statistics, Friends. There is no receipts tab: a receipt shows when a spend is
+  added and when one is tapped (Edit, Copy, Delete).
 - Keep forms short: anything with more than a couple of options opens a bottom sheet
   (see `category_sheet.dart`, `split_sheet.dart`).
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on every push.
@@ -43,8 +43,8 @@ test/          unit tests for pure logic, one widget test per screen
 
 ## Design source
 The "Stub, quiet" prototype: card-style Home, Add a spend with splits and a 3D
-receipt, Statistics, Friends (balances, groups, activity, settle up). The tab layout
-follows the "Expense App Screens" mock (Receipts tab replaced by Bills).
+receipt, Statistics, Friends (balances, groups, activity, settle up). The Receipts
+tab was dropped, and a Bills tab was tried and dropped; the store still supports bills.
 
 ## First run on a new machine
 The `android/` and `ios/` folders are not in the repo yet. Generate them once:
@@ -65,7 +65,6 @@ flutter run
 - [ ] Friends, part 2: groups, activity feed, invites, reminders
 - [x] Stubs (weekly receipts) and Statistics (Week / Month / Year trend line, top spending)
 - [x] Paper receipt (`lib/ui/kit/paper.dart`), bundled fonts (Nunito, IBM Plex Mono), category icons
-- [x] D14 Bills tab (tick to pay, autopay, add/edit), Coming up on Home, a spend opens as its
-  receipt (edit title and category, copy, delete), week-by-week in Statistics; Receipts tab removed
+- [x] D14 Receipts tab removed; a spend opens as its receipt (edit title and category, copy, delete)
 - [ ] Visual polish against the prototype, checked on a simulator
 - [ ] Settings: edit budget, edit a spend's amount and split

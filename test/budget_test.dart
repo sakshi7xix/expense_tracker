@@ -25,18 +25,4 @@ void main() {
     expect(paceGapPaise(budget: 1500000, spent: 1117050, today: nov25), 132950);
     expect(paceGapPaise(budget: 1500000, spent: 1400000, today: nov25), -150000);
   });
-
-  test('week totals group the month into sevens', () {
-    final daily = List<int>.filled(30, 100);
-    expect(weekTotals(daily), [700, 700, 700, 700, 200]);
-    expect(weekTotals([]), isEmpty);
-    expect(weeklyBudget(1500000, nov25), 350000);
-  });
-
-  test('days until a bill is due', () {
-    expect(daysUntilDue(27, nov25), 2);
-    expect(daysUntilDue(25, nov25), 0);
-    expect(daysUntilDue(1, nov25), -24);
-    expect(daysUntilDue(31, nov25), 5, reason: 'November ends on the 30th');
-  });
 }

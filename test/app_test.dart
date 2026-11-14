@@ -147,23 +147,6 @@ void main() {
     expect(tester.widget<Text>(find.byKey(const Key('stats-period'))).data, 'Last 7 days · Today');
   });
 
-  testWidgets('Statistics shows each week against the weekly budget', (tester) async {
-    final model = newModel();
-    final food = model.store.categories().first.id;
-    model.store.addSpend(title: 'Groceries', total: 32650, categoryId: food, day: model.today);
-    model.store.addSpend(title: 'Books', total: 420000, categoryId: food, day: DateTime(2026, 11, 9));
-    await start(tester, model);
-
-    await tester.tap(find.byKey(const Key('nav-statistics')));
-    await tester.pumpAndSettle();
-    String caption() => tester.widget<Text>(find.byKey(const Key('week-caption'))).data!;
-    expect(caption(), 'This week · ₹327 of ₹3,500');
-    await tester.ensureVisible(find.byKey(const Key('week-bar-1')));
-    await tester.tap(find.byKey(const Key('week-bar-1')));
-    await tester.pump();
-    expect(caption(), 'Week 2 · ₹4,200, ₹700 over');
-  });
-
   testWidgets('tapping a spend opens its receipt, which can delete it', (tester) async {
     final model = newModel();
     final riya = model.store.addFriend('Riya');
@@ -201,61 +184,6 @@ void main() {
     await tester.pumpAndSettle();
     expect(model.store.entriesForMonth(model.today).single.title, 'Masala chai');
     expect(find.text('Masala chai'), findsOneWidget);
-  });
-
-  testWidgets('Bills: ticking pays a bill, and Home sets aside what is due', (tester) async {
-    final model = newModel();
-    final power = model.store.addBill(name: 'Electricity', amount: 64000, dueDay: 27, categoryId: model.store.categories().first.id);
-    await start(tester, model);
-
-    expect(find.text('Coming up'), findsOneWidget);
-    expect(find.text('Due 27 Nov · in 2 days'), findsOneWidget);
-    expect(find.text('Per day, after bills'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('see-bills')));
-    await tester.pumpAndSettle();
-    String due() => tester.widget<Text>(find.byKey(const Key('bills-due'))).data!;
-    expect(due(), '₹640');
-
-    await tester.tap(find.byKey(Key('tick-$power')));
-    await tester.pumpAndSettle();
-    expect(due(), '₹0');
-    expect(model.store.spentInMonth(model.today), 64000);
-    expect(find.text('Paid'), findsOneWidget);
-
-    await tester.tap(find.byKey(Key('tick-$power')));
-    await tester.pumpAndSettle();
-    expect(model.store.spentInMonth(model.today), 0);
-  });
-
-  testWidgets('Bills: adding an autopay', (tester) async {
-    final model = newModel();
-    await start(tester, model);
-    await tester.tap(find.byKey(const Key('nav-bills')));
-    await tester.pumpAndSettle();
-    expect(find.textContaining('Add rent, electricity'), findsOneWidget);
-
-    await tester.tap(find.byKey(const Key('add-bill')));
-    await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('bill-amount')), '699');
-    await tester.enterText(find.byKey(const Key('bill-name')), 'Wi-Fi');
-    await tester.ensureVisible(find.byKey(const Key('bill-day')));
-    await tester.tap(find.byKey(const Key('bill-day')));
-    await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('day-28')));
-    await tester.pumpAndSettle();
-    expect(find.text('28th'), findsOneWidget);
-    await tester.ensureVisible(find.byKey(const Key('bill-autopay')));
-    await tester.tap(find.byKey(const Key('bill-autopay')));
-    await tester.pump();
-    await tester.ensureVisible(find.byKey(const Key('bill-save')));
-    await tester.tap(find.byKey(const Key('bill-save')));
-    await tester.pumpAndSettle();
-
-    final bill = model.store.billsFor(model.today).single;
-    expect((bill.name, bill.amount, bill.dueDay, bill.autopay), ('Wi-Fi', 69900, 28, true));
-    expect(find.text('Autopay · 28 Nov'), findsOneWidget);
-    expect(model.store.spentInMonth(model.today), 0, reason: 'the 28th has not come yet');
   });
 
   testWidgets('category is picked from a sheet and saved with the spend', (tester) async {

@@ -9,8 +9,6 @@ import '../../data/models.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
-import '../bills/bill_chip.dart';
-import '../bills/bills_screen.dart';
 import '../receipts/spend_receipt.dart';
 
 String _greeting(int hour) => hour < 12
@@ -19,12 +17,9 @@ String _greeting(int hour) => hour < 12
         ? 'Good afternoon'
         : 'Good evening';
 
-/// Balance card, today's two numbers, bills coming up, and this month's spends.
+/// Balance card, today's two numbers, and this month's spends.
 class HomeScreen extends StatelessWidget {
-  const HomeScreen({super.key, this.onOpenBills});
-
-  /// Switches to the Bills tab.
-  final VoidCallback? onOpenBills;
+  const HomeScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -35,8 +30,6 @@ class HomeScreen extends StatelessWidget {
     final budget = store.budget;
     final entries = store.entriesForMonth(today);
     final names = {for (final c in store.categories()) c.id: c.name};
-    final bills = store.billsFor(today);
-    final upcoming = [for (final b in bills) if (b.state == BillState.due) b];
     final perDay = perDayPaise(
       budget: budget,
       spent: spent,
@@ -63,46 +56,10 @@ class HomeScreen extends StatelessWidget {
               children: [
                 Expanded(child: _Tile(value: formatInr(store.spentOnDay(today)), label: 'Spent')),
                 SizedBox(width: StubSpace.gap),
-                Expanded(child: _Tile(value: formatInr(perDay), label: bills.isEmpty ? 'Per day' : 'Per day, after bills')),
+                Expanded(child: _Tile(value: formatInr(perDay), label: 'Per day')),
               ],
             ),
           ),
-          if (upcoming.isNotEmpty) ...[
-            SizedBox(height: 20),
-            Entrance(
-              index: 3,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text('Coming up', style: Theme.of(context).textTheme.titleMedium),
-                  GestureDetector(
-                    key: Key('see-bills'),
-                    onTap: onOpenBills,
-                    child: Text('All bills', style: TextStyle(fontSize: 12.5, fontWeight: FontWeight.w800, color: StubColors.pop)),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 10),
-            Entrance(
-              index: 3,
-              child: SizedBox(
-                height: 58,
-                child: ListView.separated(
-                  scrollDirection: Axis.horizontal,
-                  clipBehavior: Clip.none,
-                  itemCount: upcoming.length,
-                  separatorBuilder: (context, index) => SizedBox(width: StubSpace.gap),
-                  itemBuilder: (context, i) => BillChip(
-                    bill: upcoming[i],
-                    category: names[upcoming[i].categoryId] ?? '',
-                    note: billNote(upcoming[i], today),
-                    onTap: onOpenBills,
-                  ),
-                ),
-              ),
-            ),
-          ],
           SizedBox(height: 20),
           Entrance(index: 3, child: Text('This month', style: Theme.of(context).textTheme.titleMedium)),
           SizedBox(height: 10),

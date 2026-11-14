@@ -84,14 +84,9 @@ void main() {
     s.addFriend('Dev');
     s.addSpend(title: 'Groceries', total: 32650, categoryId: c['Groceries']!, day: model.today);
     s.addSpend(title: 'Chai with Riya', total: 4000, categoryId: c['Food']!, day: model.today, friendShares: {riya: 2000});
-    s.addSpend(title: 'Books', total: 82000, categoryId: c['Education']!, day: DateTime(2026, 11, 9));
-    final rent = s.addBill(name: 'Rent', amount: 800000, dueDay: 1, categoryId: c['Rent']!);
-    s.payBill(rent, day: DateTime(2026, 11, 1));
-    s.addBill(name: 'Netflix', amount: 19900, dueDay: 12, categoryId: c['Subscriptions']!, autopay: true);
-    s.addBill(name: 'Electricity', amount: 64000, dueDay: 27, categoryId: c['Electricity']!);
-    s.addBill(name: 'Wi-Fi', amount: 69900, dueDay: 28, categoryId: c['Internet & mobile']!, autopay: true);
-    s.addBill(name: 'Phone recharge', amount: 39900, dueDay: 30, categoryId: c['Internet & mobile']!, autopay: true);
-    s.runAutopays(model.today);
+    s.addSpend(title: 'Netflix', total: 19900, categoryId: c['Subscriptions']!, day: DateTime(2026, 11, 12));
+    s.addSpend(title: 'Electricity', total: 64000, categoryId: c['Electricity']!, day: DateTime(2026, 11, 8));
+    s.addSpend(title: 'Rent', total: 800000, categoryId: c['Rent']!, day: DateTime(2026, 11, 1));
     await tester.pumpWidget(RepaintBoundary(key: const Key('screen'), child: StubApp(model: model)));
     await tester.pumpAndSettle();
     return model;
@@ -138,23 +133,10 @@ void main() {
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('spend_receipt.png'));
   });
 
-  testWidgets('bills preview', (tester) async {
-    await phone(tester);
-    await tester.tap(find.byKey(const Key('nav-bills')));
-    await tester.pumpAndSettle();
-    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('bills.png'));
-    await tester.tap(find.byKey(const Key('add-bill')));
-    await tester.pumpAndSettle();
-    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('bill_sheet.png'));
-  });
-
   testWidgets('statistics preview', (tester) async {
     await phone(tester);
     await tester.tap(find.byKey(const Key('nav-statistics')));
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('stats.png'));
-    await tester.drag(find.byType(Scrollable).first, const Offset(0, -420));
-    await tester.pumpAndSettle();
-    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('stats_lower.png'));
   });
 }
