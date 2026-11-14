@@ -206,10 +206,10 @@ void main() {
 
   testWidgets('bell preview', (tester) async {
     final server = FakeServer()
-      ..addUser('A', 'you@example.com', 'Sakshi')
-      ..addUser('K', 'kabir@example.com', 'Kabir')
-      ..addUser('R', 'riya@example.com', 'Riya');
-    await FakeRemote(server, 'K').createInvite('Sakshi', 'you@example.com');
+      ..addUser('A', 'you@example.com', 'Sakshi', code: 'K7Q2M9AB')
+      ..addUser('K', 'kabir@example.com', 'Kabir', code: 'KABR6789')
+      ..addUser('R', 'riya@example.com', 'Riya', code: 'RIYA2345');
+    await FakeRemote(server, 'K').requestFriend('K7Q2M9AB');
     server.friendships.add('A|R');
     await FakeRemote(server, 'R').saveExpense(
         id: 'x1', title: 'Movie night', total: 80000, payer: 'R', day: '2026-11-24', shares: {'A': 40000, 'R': 40000});
@@ -235,6 +235,11 @@ void main() {
     await tester.tap(find.byKey(const Key('bell')));
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('notices.png'));
+    await tester.tapAt(const Offset(195, 40));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('add-friend')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('add_friend_code.png'));
   });
 
   testWidgets('welcome preview', (tester) async {

@@ -5,6 +5,7 @@ import 'package:stub/data/remote.dart';
 class FakeServer {
   final emails = <String, String>{};
   final names = <String, String>{};
+  final codes = <String, String>{};
   final invites = <String, Map<String, String?>>{};
   final friendships = <String>{};
   final expenses = <String, RemoteExpense>{};
@@ -15,9 +16,10 @@ class FakeServer {
   String tick() => (++_clock).toString().padLeft(8, '0');
   String newId() => 'id-${++_ids}';
 
-  void addUser(String id, String email, String name) {
+  void addUser(String id, String email, String name, {String? code}) {
     emails[id] = email;
     names[id] = name;
+    codes[id] = code ?? 'CODE${id.padRight(4, 'X')}'.substring(0, 8).toUpperCase();
   }
 
   bool friends(String a, String b) => friendships.contains(([a, b]..sort()).join('|'));
@@ -29,22 +31,33 @@ class FakeRemote implements Remote {
   final FakeServer server;
   final String me;
 
-  String get _email => server.emails[me]!;
+  @override
+  Future<String> myCode() async => server.codes[me]!;
 
   @override
-  Future<({String id, String code})> createInvite(String friendName, String? email) async {
-    final id = server.newId();
-    final code = 'CODE${id.hashCode.abs() % 1000000}'.padRight(10, 'X');
-    final clean = email?.trim().toLowerCase();
-    final blocked = server.invites.values.any((i) => i['from'] == me && i['email'] == clean && i['status'] == 'blocked');
-    server.invites[id] = {'from': me, 'code': code, 'email': clean, 'name': friendName, 'status': blocked ? 'blocked' : 'pending', 'by': null};
-    return (id: id, code: code);
+  Future<({String toUser, String toName, bool accepted})> requestFriend(String code) async {
+    final clean = code.replaceAll(RegExp(r'[^A-Za-z0-9]'), '').toUpperCase();
+    final target = server.codes.entries.where((e) => e.value == clean).firstOrNull?.key;
+    if (target == null) throw const RemoteFailure('No one has that code. Check it with your friend.');
+    if (target == me) throw const RemoteFailure('That’s your own code.');
+    if (server.friends(me, target)) throw const RemoteFailure('You’re already friends.');
+    final theirs = server.invites.entries.where((e) => e.value['from'] == target && e.value['to'] == me && e.value['status'] == 'pending').firstOrNull;
+    if (theirs != null) {
+      theirs.value['status'] = 'accepted';
+      theirs.value['by'] = me;
+      server.friendships.add(([me, target]..sort()).join('|'));
+      return (toUser: target, toName: server.names[target]!, accepted: true);
+    }
+    final blocked = server.invites.values.any((i) => i['from'] == me && i['to'] == target && i['status'] == 'blocked');
+    server.invites[server.newId()] = {'from': me, 'to': target, 'name': server.names[target], 'status': blocked ? 'blocked' : 'pending', 'by': null};
+    return (toUser: target, toName: server.names[target]!, accepted: false);
   }
 
   @override
   Future<List<SentInvite>> sentInvites() async => [
         for (final e in server.invites.entries)
-          if (e.value['from'] == me) SentInvite(id: e.key, code: e.value['code']!, status: e.value['status']!, acceptedBy: e.value['by']),
+          if (e.value['from'] == me)
+            SentInvite(id: e.key, status: e.value['status']!, acceptedBy: e.value['by'], toUser: e.value['to'], toName: e.value['name'] ?? ''),
       ];
 
   String _masked(String email) => '${email.substring(0, 3)}•••@${email.split('@').last}';
@@ -52,7 +65,7 @@ class FakeRemote implements Remote {
   @override
   Future<List<FriendRequest>> requests() async => [
         for (final e in server.invites.entries)
-          if (e.value['status'] == 'pending' && e.value['email'] == _email && e.value['from'] != me)
+          if (e.value['status'] == 'pending' && e.value['to'] == me)
             FriendRequest(
               id: e.key,
               fromUser: e.value['from']!,
@@ -62,19 +75,9 @@ class FakeRemote implements Remote {
       ];
 
   @override
-  Future<FriendRequest?> inviteByCode(String code) async {
-    for (final e in server.invites.entries) {
-      if (e.value['code'] == code.trim().toUpperCase() && e.value['status'] == 'pending' && e.value['from'] != me) {
-        return FriendRequest(id: e.key, fromUser: e.value['from']!, fromName: server.names[e.value['from']]!, code: code);
-      }
-    }
-    return null;
-  }
-
-  @override
   Future<String> answer(String inviteId, String? code, String answer) async {
     final i = server.invites[inviteId];
-    if (i == null || i['status'] != 'pending' || i['from'] == me || (i['email'] != _email && i['code'] != code?.toUpperCase())) {
+    if (i == null || i['status'] != 'pending' || i['to'] != me) {
       throw const RemoteFailure('That invite has expired or was already used.');
     }
     i['status'] = answer;

@@ -80,4 +80,6 @@ flutter run
   on Home and Friends, shared splits and payments synced both ways (`lib/data/sync.dart`, tested with
   `test/fake_remote.dart`), friends' spends read-only, times in Activity. Groups are not synced yet.
 - [x] S3 Name and logo: Bilby, minimal-line receipt bilby as the app icon and in the app
+- [x] S6 Friend codes: everyone has a personal 8-character code (Settings, Add a friend); friends
+  are added only by typing it, they accept from the bell, then splits sync. No email or WhatsApp invites.
 - [ ] Edit a spend's amount and split

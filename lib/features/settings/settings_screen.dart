@@ -11,6 +11,7 @@ import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
 import '../account/sign_in_page.dart';
+import '../friends/add_friend_dialog.dart';
 import 'legal_page.dart';
 
 /// Profile, budget, the legal pages and account controls.
@@ -30,6 +31,21 @@ class SettingsScreen extends StatelessWidget {
         padding: EdgeInsets.fromLTRB(StubSpace.gutter, 4, StubSpace.gutter, 32),
         children: [
           _Profile(account: account, canSignIn: auth.available),
+          if (model.sync?.myCode case final code?) ...[
+            _Label('Friends'),
+            _Row(
+              key: Key('my-friend-code'),
+              icon: Icons.qr_code_2_rounded,
+              title: 'Your friend code: ${formatFriendCode(code)}',
+              detail: 'Friends add you with this. Tap to copy.',
+              onTap: () {
+                Clipboard.setData(ClipboardData(text: code));
+                ScaffoldMessenger.of(context)
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(SnackBar(content: Text('Your code is copied')));
+              },
+            ),
+          ],
           _Label('Money'),
           _Row(
             key: Key('edit-budget'),

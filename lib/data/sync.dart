@@ -19,6 +19,12 @@ class Sync extends ChangeNotifier {
   final VoidCallback onChanged;
 
   List<FriendRequest> requests = const [];
+
+  /// Your personal friend code, once fetched.
+  String? myCode;
+
+  /// Requests you sent that haven't been accepted yet.
+  List<SentInvite> waiting = const [];
   bool running = false;
   String? problem;
   bool _again = false;
@@ -56,17 +62,26 @@ class Sync extends ChangeNotifier {
     if (store.accountId == null || store.accountId!.isEmpty) store.accountId = me;
     var changed = false;
 
-    // Friends who accepted your invites.
+    myCode ??= await remote.myCode();
+
+    // People who accepted your requests become friends on this phone.
     final names = <String, String>{};
-    for (final inv in await remote.sentInvites()) {
+    final sent = await remote.sentInvites();
+    for (final inv in sent) {
       if (inv.status != 'accepted' || inv.acceptedBy == null) continue;
-      final friendId = store.friendForInvite(inv.id);
-      if (friendId == null) continue;
-      store.linkFriend(friendId, inv.acceptedBy!);
-      final name = store.friends().firstWhere((f) => f.id == friendId).name;
-      store.addNotice(ref: 'accepted:${inv.id}', title: '$name accepted your invite', sub: 'Your splits show on their phone too', who: name);
+      final old = store.friendForInvite(inv.id);
+      if (old != null) {
+        store.linkFriend(old, inv.acceptedBy!);
+      } else if (store.friendIdForUser(inv.acceptedBy!) == null) {
+        _attach(inv.acceptedBy!, inv.toName);
+      } else {
+        continue;
+      }
+      final name = inv.toName.isEmpty ? 'Your friend' : inv.toName;
+      store.addNotice(ref: 'accepted:${inv.id}', title: '$name accepted your request', sub: 'You can split with them now', who: name);
       changed = true;
     }
+    waiting = [for (final inv in sent) if (inv.status != 'accepted' && inv.toUser != null) inv];
 
     // Upload.
     for (final x in store.outgoingExpenses()) {
@@ -136,28 +151,36 @@ class Sync extends ChangeNotifier {
     if (changed) onChanged();
   }
 
-  /// Creates an invite for a friend on this phone. Returns the code to share.
-  Future<String> invite(int friendId) async {
-    final friend = store.friends().firstWhere((f) => f.id == friendId);
-    final made = await remote.createInvite(friend.name, friend.contact.contains('@') ? friend.contact : null);
-    store.setInvite(friendId, id: made.id, code: made.code);
-    onChanged();
-    return made.code;
+  /// A friend on this phone for an account: links a not-yet-linked friend of
+  /// the same name (added before friend codes), else adds a new one.
+  int _attach(String userId, String name) {
+    final known = store.friendIdForUser(userId);
+    if (known != null) return known;
+    final sameName = store.friends().where((f) => f.name == name && store.userOfFriend(f.id) == null).firstOrNull;
+    if (sameName != null) {
+      store.linkFriend(sameName.id, userId);
+      return sameName.id;
+    }
+    return store.friendForAccount(userId, name);
   }
 
-  Future<FriendRequest?> findCode(String code) => remote.inviteByCode(code);
+  /// Sends a friend request to the owner of [code]. Returns their name.
+  Future<String> request(String code) async {
+    final r = await remote.requestFriend(code);
+    if (r.accepted) {
+      _attach(r.toUser, r.toName);
+      onChanged();
+    }
+    await run();
+    return r.toName;
+  }
 
   /// Accept, decline or block ("I don't know them") a request.
   Future<void> answer(FriendRequest request, String answer) async {
     await remote.answer(request.id, request.code, answer);
     requests = [for (final r in requests) if (r.id != request.id) r];
     if (answer == 'accepted') {
-      final existing = store.friends().where((f) => f.name == request.fromName && store.userOfFriend(f.id) == null).firstOrNull;
-      if (existing != null) {
-        store.linkFriend(existing.id, request.fromUser);
-      } else {
-        store.friendForAccount(request.fromUser, request.fromName);
-      }
+      _attach(request.fromUser, request.fromName);
       onChanged();
     }
     notifyListeners();

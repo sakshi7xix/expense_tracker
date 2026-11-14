@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stub/data/db.dart';
+import 'package:stub/data/remote.dart';
 import 'package:stub/data/store.dart';
 import 'package:stub/data/sync.dart';
 
@@ -13,8 +14,8 @@ void main() {
 
   setUp(() {
     server = FakeServer()
-      ..addUser('A', 'asha@example.com', 'Asha')
-      ..addUser('B', 'bina@example.com', 'Bina');
+      ..addUser('A', 'asha@example.com', 'Asha', code: 'ASHA2345')
+      ..addUser('B', 'bina@example.com', 'Bina', code: 'BINA6789');
     asha = StubStore(openMemoryDb());
     bina = StubStore(openMemoryDb());
     ashaSync = Sync(store: asha, remote: FakeRemote(server, 'A'), me: 'A', onChanged: () {});
@@ -23,46 +24,58 @@ void main() {
 
   int food(StubStore s) => s.categories().first.id;
 
-  test('splits made before a friend joins reach them once they accept', () async {
-    final binaOnAsha = asha.addFriend('Bina', contact: 'bina@example.com');
-    asha.addSpend(title: 'Dinner', total: 120000, categoryId: food(asha), day: nov25, friendShares: {binaOnAsha: 60000});
+  Future<void> befriend() async {
+    await ashaSync.request('bina 6789');
+    await binaSync.run();
+    await binaSync.answer(binaSync.requests.single, 'accepted');
     await ashaSync.run();
-    expect(server.expenses, isEmpty, reason: 'nothing goes online until Bina joins');
+  }
 
-    final code = await ashaSync.invite(binaOnAsha);
-    expect(code, isNotEmpty);
-    expect(asha.waitingInvites().single.name, 'Bina');
+  test('a friend is added with their code and appears once they accept', () async {
+    await ashaSync.run();
+    expect(ashaSync.myCode, 'ASHA2345');
+
+    expect(await ashaSync.request('bina-6789'), 'Bina');
+    expect(asha.friends(), isEmpty, reason: 'nobody is added until they accept');
+    expect(ashaSync.waiting.single.toName, 'Bina');
 
     await binaSync.run();
     expect(binaSync.requests.single.fromName, 'Asha');
-    expect(binaSync.requests.single.fromEmail, 'ash•••@example.com');
     await binaSync.answer(binaSync.requests.single, 'accepted');
+    expect(bina.friends().single.name, 'Asha');
 
     await ashaSync.run();
-    expect(asha.waitingInvites(), isEmpty);
-    expect(asha.notices().first.title, 'Bina accepted your invite');
-    expect(server.expenses.values.single.shares, {'A': 60000, 'B': 60000});
-
-    await binaSync.run();
-    final ashaOnBina = bina.friendIdForUser('A')!;
-    expect(bina.balanceOf(ashaOnBina), -60000, reason: 'Bina owes Asha her share');
-    final dinner = bina.entriesForMonth(nov25).single;
-    expect((dinner.title, dinner.amount, dinner.total, dinner.addedBy), ('Dinner', 60000, 120000, 'A'));
-    expect(bina.notices().first.title, 'Asha added “Dinner”');
-    expect(bina.unseenNotices, 1);
+    expect(asha.friends().single.name, 'Bina');
+    expect(asha.userOfFriend(asha.friends().single.id), 'B');
+    expect(ashaSync.waiting, isEmpty);
+    expect(asha.notices().first.title, 'Bina accepted your request');
   });
 
-  test('payments and deletions travel both ways', () async {
-    final binaOnAsha = asha.addFriend('Bina', contact: 'bina@example.com');
-    await ashaSync.invite(binaOnAsha);
-    await binaSync.run();
-    await binaSync.answer(binaSync.requests.single, 'accepted');
-    await ashaSync.run();
+  test('wrong codes are explained', () async {
+    expect(() => ashaSync.request('NOPE0000'), throwsA(isA<RemoteFailure>()));
+    expect(() => ashaSync.request('ASHA2345'), throwsA(isA<RemoteFailure>()));
+    await befriend();
+    expect(() => ashaSync.request('BINA6789'), throwsA(isA<RemoteFailure>()));
+  });
 
+  test('adding someone who already asked you makes you friends at once', () async {
+    await binaSync.request('ASHA2345');
+    final name = await ashaSync.request('BINA6789');
+    expect(name, 'Bina');
+    expect(asha.friends().single.name, 'Bina');
+    await binaSync.run();
+    expect(bina.friends().single.name, 'Asha');
+  });
+
+  test('splits and payments travel between friends, and deletions too', () async {
+    await befriend();
+    final binaOnAsha = asha.friends().single.id;
     final dinner = asha.addSpend(title: 'Dinner', total: 90000, categoryId: food(asha), day: nov25, friendShares: {binaOnAsha: 45000});
     await ashaSync.run();
     await binaSync.run();
     final ashaOnBina = bina.friendIdForUser('A')!;
+    expect(bina.balanceOf(ashaOnBina), -45000);
+    expect(bina.notices().first.title, 'Asha added “Dinner”');
 
     bina.settle(ashaOnBina, 20000, day: nov25);
     await binaSync.run();
@@ -74,22 +87,15 @@ void main() {
     await ashaSync.run();
     await binaSync.run();
     expect(bina.entriesForMonth(nov25), isEmpty);
-    expect(bina.balanceOf(ashaOnBina), 20000, reason: 'only the payment is left');
   });
 
-  test('a friend can be found by invite code, and a split with someone not on the app stays on the phone', () async {
-    final binaOnAsha = asha.addFriend('Bina');
-    final code = await ashaSync.invite(binaOnAsha);
-    final found = await binaSync.findCode(code);
-    expect(found!.fromName, 'Asha');
-    await binaSync.answer(found, 'accepted');
-    await ashaSync.run();
-    expect(asha.userOfFriend(binaOnAsha), 'B');
-
-    final chet = asha.addFriend('Chet');
-    asha.addSpend(title: 'Cab', total: 30000, categoryId: food(asha), day: nov25, friendShares: {chet: 15000});
-    await ashaSync.run();
-    expect(server.expenses, isEmpty);
+  test('a friend added by name before codes is linked when they accept', () async {
+    final old = asha.addFriend('Bina');
+    asha.addSpend(title: 'Cab', total: 30000, categoryId: food(asha), day: nov25, friendShares: {old: 15000});
+    await befriend();
+    expect(asha.friends().single.id, old, reason: 'the same friend, now linked');
+    await binaSync.run();
+    expect(bina.entriesForMonth(nov25).single.title, 'Cab', reason: 'older splits reach them too');
   });
 
   test('a phone with another account’s data does not sync', () async {
