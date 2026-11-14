@@ -18,9 +18,11 @@ class SupabaseRemote implements Remote {
       throw const RemoteFailure('No internet connection.');
     } on PostgrestException catch (e) {
       final m = e.message;
-      if (m.contains('too many invites')) throw const RemoteFailure('That’s a lot of invites today. Try again tomorrow.');
-      if (m.contains('your own email')) throw const RemoteFailure('That’s your own email.');
-      if (m.contains('invite not found')) throw const RemoteFailure('That invite has expired or was already used.');
+      if (m.contains('too many')) throw const RemoteFailure('That’s a lot of requests today. Try again tomorrow.');
+      if (m.contains('no one has that code')) throw const RemoteFailure('No one has that code. Check it with your friend.');
+      if (m.contains('your own code')) throw const RemoteFailure('That’s your own code.');
+      if (m.contains('already friends')) throw const RemoteFailure('You’re already friends.');
+      if (m.contains('invite not found')) throw const RemoteFailure('That request was already answered.');
       throw RemoteFailure(m);
     } on AuthException catch (e) {
       throw RemoteFailure(e.message);
@@ -28,18 +30,31 @@ class SupabaseRemote implements Remote {
   }
 
   @override
-  Future<({String id, String code})> createInvite(String friendName, String? email) => _guard(() async {
-        final rows = await _client.rpc('create_invite', params: {'p_friend_name': friendName, 'p_email': email}) as List;
-        final row = rows.first as Map;
-        return (id: row['id'] as String, code: row['code'] as String);
+  Future<String> myCode() => _guard(() async {
+        final id = _client.auth.currentUser!.id;
+        final row = await _client.from('profiles').select('friend_code').eq('id', id).single();
+        return row['friend_code'] as String;
+      });
+
+  @override
+  Future<({String toUser, String toName, bool accepted})> requestFriend(String code) => _guard(() async {
+        final rows = await _client.rpc('request_friend', params: {'p_code': code}) as List;
+        final r = rows.first as Map;
+        return (toUser: r['to_user'] as String, toName: r['to_name'] as String, accepted: r['status'] == 'accepted');
       });
 
   @override
   Future<List<SentInvite>> sentInvites() => _guard(() async {
-        final rows = await _client.from('invites').select('id, code, status, accepted_by');
+        final rows = await _client.from('invites').select('id, status, accepted_by, to_user, friend_name');
         return [
           for (final r in rows)
-            SentInvite(id: r['id'] as String, code: r['code'] as String, status: r['status'] as String, acceptedBy: r['accepted_by'] as String?),
+            SentInvite(
+              id: r['id'] as String,
+              status: r['status'] as String,
+              acceptedBy: r['accepted_by'] as String?,
+              toUser: r['to_user'] as String?,
+              toName: r['friend_name'] as String? ?? '',
+            ),
         ];
       });
 
@@ -55,14 +70,6 @@ class SupabaseRemote implements Remote {
               fromEmail: r['from_email'] as String? ?? '',
             ),
         ];
-      });
-
-  @override
-  Future<FriendRequest?> inviteByCode(String code) => _guard(() async {
-        final rows = await _client.rpc('invite_by_code', params: {'p_code': code}) as List;
-        if (rows.isEmpty) return null;
-        final r = rows.first as Map;
-        return FriendRequest(id: r['id'] as String, fromUser: r['from_user'] as String, fromName: r['from_name'] as String, code: code);
       });
 
   @override

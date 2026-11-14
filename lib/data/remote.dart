@@ -62,15 +62,18 @@ class FriendRequest {
   /// Partly hidden, like ash•••@example.com. Empty when found by code.
   final String fromEmail;
 
-  /// Set when the request was found by its invite code.
+  /// Only for requests from older app versions found by invite code.
   final String? code;
 }
 
 class SentInvite {
-  const SentInvite({required this.id, required this.code, required this.status, this.acceptedBy});
+  const SentInvite({required this.id, required this.status, this.acceptedBy, this.toUser, this.toName = ''});
 
   final String id;
-  final String code;
+
+  /// Who the request went to, and their name.
+  final String? toUser;
+  final String toName;
 
   /// pending, accepted, declined or blocked. Declined and blocked look like
   /// pending to the sender.
@@ -89,10 +92,15 @@ class RemoteFailure implements Exception {
 }
 
 abstract class Remote {
-  Future<({String id, String code})> createInvite(String friendName, String? email);
+  /// This account's personal friend code.
+  Future<String> myCode();
+
+  /// Sends a friend request to whoever owns [code]. Returns their id, name and
+  /// whether you're now friends already (they had asked you first).
+  Future<({String toUser, String toName, bool accepted})> requestFriend(String code);
+
   Future<List<SentInvite>> sentInvites();
   Future<List<FriendRequest>> requests();
-  Future<FriendRequest?> inviteByCode(String code);
 
   /// [answer] is accepted, declined or blocked. Returns the sender's id.
   Future<String> answer(String inviteId, String? code, String answer);
