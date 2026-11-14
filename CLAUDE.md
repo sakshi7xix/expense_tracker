@@ -33,6 +33,8 @@ test/          unit tests for pure logic, one widget test per screen
 - Keep forms short: anything with more than a couple of options opens a bottom sheet
   (see `category_sheet.dart`, `split_sheet.dart`).
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on every push.
+  It also renders preview PNGs (`test/golden/`, tag `golden`) and pushes them to the
+  `previews` branch under a folder named after the branch, so screens can be checked by eye.
 
 ## Design source
 The "Stub, quiet" prototype: card-style Home, Add a spend with splits and a 3D
