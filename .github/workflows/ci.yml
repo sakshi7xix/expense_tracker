@@ -30,4 +30,5 @@ jobs:
           git rm -rqf --cached . 2>/dev/null || true
           git add -f ':(glob)*/*.png' 2>/dev/null || true
           mkdir -p "${GITHUB_REF_NAME}" && cp /tmp/prev/*.png "${GITHUB_REF_NAME}/"
-          git add -f "${GITHUB_REF_NAME}"/*.png && git commit -qm "Previews for ${GITHUB_REF_NAME} ${GITHUB_SHA::7}" && git push -q origin HEAD:previews
+          git add -f "${GITHUB_REF_NAME}"/*.png
+          git diff --cached --quiet || { git commit -qm "Previews for ${GITHUB_REF_NAME} ${GITHUB_SHA::7}" && git push -q origin HEAD:previews; }
