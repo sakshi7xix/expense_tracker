@@ -7,6 +7,7 @@ import 'models.dart';
 
 part 'store_bills.dart';
 part 'store_friends.dart';
+part 'store_groups.dart';
 part 'store_spends.dart';
 
 /// All reads and writes go through here. Synchronous, local-only.

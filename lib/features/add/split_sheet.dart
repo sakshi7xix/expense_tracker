@@ -63,6 +63,7 @@ class _SplitSheetState extends State<SplitSheet> {
     final store = StubScope.of(context).store;
     final friends = store.friends();
     final names = {for (final f in friends) f.id: f.name};
+    final groups = store.groups();
     final total = widget.total;
     final result = total == null || !_draft.active ? null : _draft.result(total);
     final bad = result != null && !result.ok;
@@ -94,6 +95,25 @@ class _SplitSheetState extends State<SplitSheet> {
                   ],
                 ),
                 SizedBox(height: 14),
+                if (groups.isNotEmpty) ...[
+                  SizedBox(
+                    height: 38,
+                    child: ListView.separated(
+                      scrollDirection: Axis.horizontal,
+                      itemCount: groups.length,
+                      separatorBuilder: (context, index) => SizedBox(width: 6),
+                      itemBuilder: (context, i) => ChoicePill(
+                        key: Key('group-${groups[i].id}'),
+                        label: groups[i].name,
+                        selected: _draft.groupId == groups[i].id,
+                        onTap: () => _reseed(
+                          () => _draft.useGroup(groups[i].id, groups[i].name, groups[i].memberIds, total ?? 0),
+                        ),
+                      ),
+                    ),
+                  ),
+                  SizedBox(height: 12),
+                ],
                 SizedBox(
                   height: 74,
                   child: ListView(

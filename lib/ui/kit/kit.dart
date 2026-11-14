@@ -226,3 +226,38 @@ class TapRow extends StatelessWidget {
     );
   }
 }
+
+/// A quiet outlined "+ Add …" button at the end of a list.
+class AddButton extends StatelessWidget {
+  const AddButton({super.key, required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Pressable(
+      scale: 0.97,
+      label: label,
+      onTap: onTap,
+      child: Container(
+        height: 50,
+        margin: EdgeInsets.only(top: 4),
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(StubRadius.row),
+          border: Border.all(color: Color(0xFFD5D4D9), width: 1.5),
+        ),
+        child: ExcludeSemantics(
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.add_rounded, size: 20, color: StubColors.muted),
+              SizedBox(width: 6),
+              Text(label, style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800, color: StubColors.muted)),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

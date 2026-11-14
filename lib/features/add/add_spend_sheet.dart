@@ -4,6 +4,7 @@ import '../../app_model.dart';
 import '../../core/dates.dart';
 import '../../core/money.dart';
 import '../../core/tokens.dart';
+import '../../data/models.dart';
 import '../../data/store.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
@@ -16,7 +17,10 @@ import 'split_sheet.dart';
 /// A tall glass pop-up over Home: amount, note, category and split. Category and split each
 /// open their own sheet so the form itself stays three rows long.
 class AddSpendSheet extends StatefulWidget {
-  const AddSpendSheet({super.key});
+  const AddSpendSheet({super.key, this.group});
+
+  /// Starts the spend as a split with everyone in this group.
+  final Group? group;
 
   @override
   State<AddSpendSheet> createState() => _AddSpendSheetState();
@@ -28,6 +32,13 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
   final _split = SplitDraft();
   int? _categoryId;
   String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    final group = widget.group;
+    if (group != null) _split.useGroup(group.id, group.name, group.memberIds, 0);
+  }
 
   @override
   void dispose() {
@@ -70,6 +81,7 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
         day: today,
         friendShares: split == null ? const {} : {for (final id in _split.friends) id: split.shares['$id']!},
         payerFriendId: _split.active ? _split.payer : null,
+        groupId: _split.active ? _split.groupId : null,
       ),
     );
 

@@ -15,6 +15,11 @@ class SplitDraft {
   /// What was typed per person for the unequal methods.
   final values = <String, String>{};
 
+  /// The group this spend is for, if one was picked.
+  int? groupId;
+  String groupName = '';
+  final _groupMembers = <int>{};
+
   bool get active => friends.isNotEmpty;
 
   List<String> get people => [me, for (final id in friends) '$id'];
@@ -24,10 +29,31 @@ class SplitDraft {
     values.clear();
     payer = null;
     method = SplitMethod.equal;
+    groupId = null;
+    groupName = '';
+    _groupMembers.clear();
+  }
+
+  /// Splits with everyone in a group, or un-picks it if it was picked.
+  void useGroup(int id, String name, List<int> members, int total) {
+    final again = groupId == id;
+    clear();
+    if (again) return;
+    groupId = id;
+    groupName = name;
+    _groupMembers.addAll(members);
+    friends.addAll(members);
+    prefill(total);
   }
 
   void toggle(int friendId, int total) {
     friends.contains(friendId) ? friends.remove(friendId) : friends.add(friendId);
+    // Adding someone from outside the group makes it an ordinary split.
+    if (!_groupMembers.containsAll(friends)) {
+      groupId = null;
+      groupName = '';
+      _groupMembers.clear();
+    }
     if (payer != null && !friends.contains(payer)) payer = null;
     prefill(total);
   }
@@ -35,6 +61,7 @@ class SplitDraft {
   /// Drops friends that no longer exist.
   void prune(Set<int> existing) {
     friends.removeWhere((id) => !existing.contains(id));
+    if (friends.isEmpty) groupId = null;
     if (payer != null && !friends.contains(payer)) payer = null;
   }
 
@@ -95,7 +122,7 @@ class SplitDraft {
   /// One line for the form row, e.g. "With Riya, Aman · Riya paid".
   String label(Map<int, String> names) {
     if (!active) return 'Just me';
-    final who = [for (final id in friends) names[id] ?? ''].join(', ');
+    final who = groupId != null ? groupName : [for (final id in friends) names[id] ?? ''].join(', ');
     return payer == null ? 'With $who' : 'With $who · ${names[payer]} paid';
   }
 }

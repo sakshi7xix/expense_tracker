@@ -80,8 +80,13 @@ void main() {
     s.firstRunDone = true;
     final c = {for (final x in s.categories()) x.name: x.id};
     final riya = s.addFriend('Riya');
-    s.addFriend('Aman');
-    s.addFriend('Dev');
+    final aman = s.addFriend('Aman');
+    final dev = s.addFriend('Dev');
+    final flat = s.addGroup('Flatmates', [riya, aman, dev]);
+    s.addSpend(title: 'Groceries for the flat', total: 120000, categoryId: c['Groceries']!, day: DateTime(2026, 11, 24), friendShares: {riya: 30000, aman: 30000, dev: 30000}, groupId: flat);
+    s.addSpend(title: 'Gas cylinder', total: 90000, categoryId: c['Water & gas']!, day: DateTime(2026, 11, 20), friendShares: {riya: 22500, aman: 22500, dev: 22500}, payerFriendId: aman, groupId: flat);
+    s.addGroup('Goa trip', [riya, dev]);
+    s.settle(dev, 10000, day: DateTime(2026, 11, 23));
     s.addSpend(title: 'Groceries', total: 32650, categoryId: c['Groceries']!, day: model.today);
     s.addSpend(title: 'Chai with Riya', total: 4000, categoryId: c['Food']!, day: model.today, friendShares: {riya: 2000});
     s.addSpend(title: 'Netflix', total: 19900, categoryId: c['Subscriptions']!, day: DateTime(2026, 11, 12));
@@ -138,5 +143,33 @@ void main() {
     await tester.tap(find.byKey(const Key('nav-statistics')));
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('stats.png'));
+  });
+
+  testWidgets('friends previews', (tester) async {
+    await phone(tester);
+    await tester.tap(find.byKey(const Key('nav-friends')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('friends.png'));
+    await tester.tap(find.byKey(const Key('seg-groups')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('groups.png'));
+    await tester.tap(find.text('Flatmates'));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('group_sheet.png'));
+    await tester.tapAt(const Offset(195, 40));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('seg-activity')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('activity.png'));
+    await tester.tap(find.byKey(const Key('nav-home')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('fab-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('amount-field')), '400');
+    await tester.tap(find.byKey(const Key('split-row')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Goa trip'));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('split_group.png'));
   });
 }

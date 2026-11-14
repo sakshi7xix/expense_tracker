@@ -186,6 +186,98 @@ void main() {
     expect(find.text('Masala chai'), findsOneWidget);
   });
 
+  testWidgets('a group is made, then a spend is split with everyone in it', (tester) async {
+    final model = newModel();
+    final riya = model.store.addFriend('Riya');
+    final aman = model.store.addFriend('Aman');
+    await start(tester, model);
+
+    await tester.tap(find.byKey(const Key('nav-friends')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('seg-groups')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('new-group')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('group-save')));
+    await tester.pump();
+    expect(find.text('Give the group a name'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('group-name')), 'Flatmates');
+    await tester.tap(find.byKey(Key('member-$riya')));
+    await tester.tap(find.byKey(Key('member-$aman')));
+    await tester.pump();
+    await tester.tap(find.byKey(const Key('group-save')));
+    await tester.pumpAndSettle();
+    final flat = model.store.groups().single;
+    expect(flat.memberIds, [riya, aman]);
+
+    await tester.tap(find.byKey(Key('group-row-${flat.id}')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('group-add-spend')));
+    await tester.tap(find.byKey(const Key('group-add-spend')));
+    await tester.pumpAndSettle();
+    expect(find.text('With Flatmates'), findsOneWidget);
+    await tester.enterText(find.byKey(const Key('amount-field')), '900');
+    await tester.enterText(find.byKey(const Key('title-field')), 'Groceries');
+    await tester.tap(find.byKey(const Key('save-button')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Done'));
+    await tester.pumpAndSettle();
+
+    final summary = model.store.groupSummary(flat.id);
+    expect(summary.spent, 90000);
+    expect(summary.balances, {riya: 30000, aman: 30000});
+    expect(model.store.spentInMonth(model.today), 30000);
+    expect(find.text('you are owed ₹600'), findsOneWidget);
+
+    await tester.tap(find.byKey(const Key('seg-activity')));
+    await tester.pumpAndSettle();
+    expect(find.text('Today'), findsOneWidget);
+    expect(find.text('Riya owes you ₹300'), findsOneWidget);
+  });
+
+  testWidgets('picking a group in the split sheet adds its members', (tester) async {
+    final model = newModel();
+    final riya = model.store.addFriend('Riya');
+    final aman = model.store.addFriend('Aman');
+    final dev = model.store.addFriend('Dev');
+    final trip = model.store.addGroup('Goa trip', [riya, aman]);
+    await start(tester, model);
+
+    await tester.tap(find.byKey(const Key('fab-add')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('amount-field')), '300');
+    await tester.tap(find.byKey(const Key('split-row')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('group-$trip')));
+    await tester.pumpAndSettle();
+    expect(find.text('Riya owes you ₹100.00'), findsOneWidget);
+    await tester.tap(find.byKey(Key('friend-$dev')));
+    await tester.pumpAndSettle();
+    expect(find.text('Dev owes you ₹75.00'), findsOneWidget);
+    await tester.tap(find.byKey(Key('friend-$dev')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('split-done')));
+    await tester.tap(find.byKey(const Key('split-done')));
+    await tester.pumpAndSettle();
+    expect(find.text('With Riya, Aman'), findsOneWidget, reason: 'adding Dev turned it into a plain split');
+  });
+
+  testWidgets('a reminder is copied for a friend who owes you', (tester) async {
+    final model = newModel();
+    final riya = model.store.addFriend('Riya');
+    final food = model.store.categories().first.id;
+    model.store.addSpend(title: 'Dinner', total: 12000, categoryId: food, day: model.today, friendShares: {riya: 6000});
+    await start(tester, model);
+    await tester.tap(find.byKey(const Key('nav-friends')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(Key('friend-row-$riya')));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.byKey(const Key('remind-button')));
+    await tester.tap(find.byKey(const Key('remind-button')));
+    await tester.pumpAndSettle();
+    expect(find.text('Reminder copied. Paste it in a chat with Riya.'), findsOneWidget);
+  });
+
   testWidgets('category is picked from a sheet and saved with the spend', (tester) async {
     final model = newModel();
     await start(tester, model);
