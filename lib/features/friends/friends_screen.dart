@@ -9,6 +9,7 @@ import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
 import '../account/sign_in_page.dart';
+import '../notifications/bell.dart';
 import 'activity_view.dart';
 import 'add_friend_dialog.dart';
 import 'friend_sheet.dart';
@@ -36,7 +37,16 @@ class _FriendsScreenState extends State<FriendsScreen> {
       child: ListView(
         padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 24),
         children: [
-          Center(child: Text('Friends', style: text.titleMedium)),
+          SizedBox(
+            height: 40,
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Text('Friends', style: text.titleMedium),
+                Align(alignment: Alignment.centerRight, child: BellButton()),
+              ],
+            ),
+          ),
           SizedBox(height: 14),
           Row(
             children: [

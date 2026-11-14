@@ -74,5 +74,7 @@ flutter run
 - [ ] Visual polish against the prototype, checked on a simulator
 - [x] S1 Sign-in (email code, name, 18+), Settings (budget, privacy, terms, licences, help, sign out,
   delete account), profiles table with RLS and tests
-- [ ] S2 Friends online: invites by link, shared expenses and groups synced, balances on both phones
+- [x] S2 Friends online: invite by email or code (share sheet), friend requests and updates in a bell
+  on Home and Friends, shared splits and payments synced both ways (`lib/data/sync.dart`, tested with
+  `test/fake_remote.dart`), friends' spends read-only, times in Activity. Groups are not synced yet.
 - [ ] Edit a spend's amount and split

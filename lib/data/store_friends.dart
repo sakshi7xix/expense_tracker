@@ -17,7 +17,7 @@ extension Friends on StubStore {
   /// Every friend with their balance. Positive: they owe you.
   List<FriendBalance> friends() {
     final rows = db.select(
-      'SELECT f.id, f.name, f.contact, f.joined, COALESCE(SUM(l.amount), 0) AS balance '
+      'SELECT f.id, f.name, f.contact, (f.user_id IS NOT NULL) AS joined, COALESCE(SUM(l.amount), 0) AS balance '
       'FROM friend f LEFT JOIN ledger l ON l.friend_id = f.id AND l.deleted = 0 '
       'GROUP BY f.id ORDER BY f.id',
     );
@@ -56,8 +56,8 @@ extension Friends on StubStore {
     final name = db.select('SELECT name FROM friend WHERE id = ?', [friendId]).first['name'] as String;
     final theyPaid = balance > 0;
     db.execute(
-      'INSERT INTO ledger (friend_id, title, amount, kind, day, created_at) '
-      "VALUES (?, ?, ?, 'payment', ?, ?)",
+      'INSERT INTO ledger (friend_id, title, amount, kind, day, created_at, dirty) '
+      "VALUES (?, ?, ?, 'payment', ?, ?, 1)",
       [friendId, theyPaid ? '$name paid you' : 'You paid $name', theyPaid ? -amount : amount, dayKey(day), _now],
     );
     return amount;
@@ -72,6 +72,7 @@ extension Friends on StubStore {
       amount: row['amount'] as int,
       isPayment: row['kind'] == 'payment',
       day: row['day'] as String,
+      createdAt: row['created_at'] as int,
     );
   }
 

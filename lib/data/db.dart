@@ -1,6 +1,6 @@
 import 'package:sqlite3/sqlite3.dart';
 
-const schemaVersion = 4;
+const schemaVersion = 5;
 
 const defaultCategories = [
   'Food', 'Groceries', 'Transport', 'Shopping',
@@ -51,6 +51,35 @@ void migrate(Database db) {
     // v4: a spend can belong to a group, and groups can be removed.
     _addColumn(db, 'entry', 'grp_id', 'INTEGER REFERENCES grp(id)');
     _addColumn(db, 'grp', 'deleted', 'INTEGER NOT NULL DEFAULT 0');
+  }
+  if (from < 5) {
+    // v5: friends online. Friends can be linked to an account, spends and
+    // payments remember their online copy, and changes waiting to upload are
+    // marked dirty. Each friend's share of a spend is kept, and the bell's
+    // notices are stored.
+    _addColumn(db, 'friend', 'user_id', 'TEXT');
+    _addColumn(db, 'friend', 'invite_id', 'TEXT');
+    _addColumn(db, 'friend', 'invite_code', 'TEXT');
+    _addColumn(db, 'entry', 'remote_id', 'TEXT');
+    _addColumn(db, 'entry', 'remote_by', 'TEXT');
+    _addColumn(db, 'entry', 'dirty', 'INTEGER NOT NULL DEFAULT 0');
+    _addColumn(db, 'ledger', 'remote_id', 'TEXT');
+    _addColumn(db, 'ledger', 'dirty', 'INTEGER NOT NULL DEFAULT 0');
+    db.execute('''CREATE TABLE IF NOT EXISTS entry_share (
+      entry_id INTEGER NOT NULL REFERENCES entry(id),
+      friend_id INTEGER NOT NULL REFERENCES friend(id),
+      share INTEGER NOT NULL,
+      PRIMARY KEY (entry_id, friend_id))''');
+    db.execute('''CREATE TABLE IF NOT EXISTS notice (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      ref TEXT NOT NULL UNIQUE,
+      title TEXT NOT NULL,
+      sub TEXT NOT NULL,
+      who TEXT NOT NULL,
+      at INTEGER NOT NULL,
+      seen INTEGER NOT NULL DEFAULT 0)''');
+    db.execute('CREATE UNIQUE INDEX IF NOT EXISTS entry_remote ON entry(remote_id) WHERE remote_id IS NOT NULL');
+    db.execute('CREATE UNIQUE INDEX IF NOT EXISTS ledger_remote ON ledger(remote_id) WHERE remote_id IS NOT NULL');
   }
   db.userVersion = schemaVersion;
   db.execute('COMMIT');

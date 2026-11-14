@@ -9,6 +9,7 @@ import '../../data/models.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
+import '../notifications/bell.dart';
 import '../receipts/spend_receipt.dart';
 import '../settings/settings_screen.dart';
 
@@ -54,6 +55,8 @@ class HomeScreen extends StatelessWidget {
                   ],
                 ),
               ),
+              BellButton(),
+              SizedBox(width: 10),
               Pressable(
                 key: Key('open-settings'),
                 scale: 0.9,

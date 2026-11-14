@@ -5,12 +5,16 @@ import '../../core/tokens.dart';
 import '../../data/auth.dart';
 import '../../data/store.dart';
 import '../../ui/kit/glass.dart';
-import '../../ui/kit/motion.dart';
+import '../../ui/kit/kit.dart';
+import 'invite.dart';
 
-/// Asks for a name and an optional phone or email, saves the friend and
-/// returns their id, or null if cancelled.
-Future<int?> showAddFriend(BuildContext context) {
-  return showDialog<int>(context: context, barrierColor: glassBarrier, builder: (_) => _AddFriendDialog());
+/// Asks for a name and an optional email, saves the friend and returns
+/// their id, or null if cancelled. "Add and invite" then shares an invite.
+Future<int?> showAddFriend(BuildContext context) async {
+  final result = await showDialog<(int, bool)>(context: context, barrierColor: glassBarrier, builder: (_) => _AddFriendDialog());
+  if (result == null) return null;
+  if (result.$2 && context.mounted) await inviteFriend(context, result.$1);
+  return result.$1;
 }
 
 class _AddFriendDialog extends StatefulWidget {
@@ -31,7 +35,7 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
     super.dispose();
   }
 
-  void _save() {
+  void _save({bool invite = false}) {
     final email = _contact.text.trim();
     if (email.isNotEmpty && !looksLikeEmail(email)) {
       setState(() => _emailError = 'That email doesn’t look right');
@@ -41,7 +45,7 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
       final id = StubScope.of(context).write(
         (store) => store.addFriend(_name.text, contact: email.toLowerCase()),
       );
-      Navigator.of(context).pop(id);
+      Navigator.of(context).pop((id, invite));
     } on ArgumentError {
       setState(() => _error = 'Add their name');
     } on StateError {
@@ -79,29 +83,13 @@ class _AddFriendDialogState extends State<_AddFriendDialog> {
             },
             onSubmitted: (_) => _save(),
           ),
+          SizedBox(height: 18),
+          PillButton(key: Key('friend-invite'), label: 'Add and invite', onPressed: () => _save(invite: true)),
+          SizedBox(height: 8),
+          FrostButton(key: Key('friend-save'), label: 'Just add', onPressed: _save),
         ],
       ),
-      actions: [
-        TextButton(
-          onPressed: () => Navigator.of(context).pop(),
-          style: TextButton.styleFrom(foregroundColor: StubColors.muted),
-          child: Text('Cancel', style: TextStyle(fontWeight: FontWeight.w800)),
-        ),
-        SizedBox(width: 6),
-        Pressable(
-          key: Key('friend-save'),
-          scale: 0.94,
-          label: 'Add',
-          onTap: _save,
-          child: Container(
-            padding: EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-            decoration: BoxDecoration(color: StubColors.ink, borderRadius: BorderRadius.circular(22)),
-            child: ExcludeSemantics(
-              child: Text('Add', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w800)),
-            ),
-          ),
-        ),
-      ],
+      actions: const [],
     );
   }
 }

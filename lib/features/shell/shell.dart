@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
+import '../../app_model.dart';
 import '../../core/tokens.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/motion.dart';
@@ -17,8 +18,26 @@ class Shell extends StatefulWidget {
   State<Shell> createState() => _ShellState();
 }
 
-class _ShellState extends State<Shell> {
+class _ShellState extends State<Shell> with WidgetsBindingObserver {
   int _tab = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  /// Back in the app: fetch what friends added meanwhile.
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) StubScope.of(context).sync?.run();
+  }
 
   static const _tabs = [
     (icon: Icons.home_rounded, label: 'Home'),
