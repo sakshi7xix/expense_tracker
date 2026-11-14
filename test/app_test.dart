@@ -192,21 +192,50 @@ void main() {
     expect(model.store.spentInMonth(model.today), 2000);
   });
 
-  testWidgets('a spend can be renamed from its receipt', (tester) async {
+  testWidgets('a spend can be edited from its receipt: amount, name and split', (tester) async {
     final model = newModel();
+    final riya = model.store.addFriend('Riya');
     final food = model.store.categories().first.id;
-    model.store.addSpend(title: 'Chai', total: 2000, categoryId: food, day: model.today);
+    model.store.addSpend(title: 'Chai', total: 4000, categoryId: food, day: model.today, friendShares: {riya: 2000});
     await start(tester, model);
 
     await tester.tap(find.text('Chai'));
     await tester.pumpAndSettle();
     await tester.tap(find.byKey(const Key('receipt-edit')));
     await tester.pumpAndSettle();
-    await tester.enterText(find.byKey(const Key('edit-title')), 'Masala chai');
-    await tester.tap(find.byKey(const Key('edit-save')));
+    expect(find.text('Edit spend'), findsOneWidget);
+    expect(find.text('With Riya'), findsOneWidget, reason: 'the split is filled in');
+    expect(tester.widget<EditableText>(find.descendant(of: find.byKey(const Key('amount-field')), matching: find.byType(EditableText))).controller.text, '40');
+
+    await tester.enterText(find.byKey(const Key('amount-field')), '60');
+    await tester.enterText(find.byKey(const Key('title-field')), 'Masala chai');
+    await tester.tap(find.byKey(const Key('save-button')));
     await tester.pumpAndSettle();
-    expect(model.store.entriesForMonth(model.today).single.title, 'Masala chai');
+
+    final e = model.store.entriesForMonth(model.today).single;
+    expect((e.title, e.total, e.amount), ('Masala chai', 6000, 3000));
+    expect(model.store.balanceOf(riya), 3000, reason: 'Riya’s share follows the new amount');
     expect(find.text('Masala chai'), findsOneWidget);
+    expect(find.text('Saved Masala chai'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Saved Masala chai'), findsNothing);
+  });
+
+  testWidgets('the Undo message goes away by itself', (tester) async {
+    final model = newModel();
+    final food = model.store.categories().first.id;
+    model.store.addSpend(title: 'Chai', total: 2000, categoryId: food, day: model.today);
+    await start(tester, model);
+    await tester.tap(find.text('Chai'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('receipt-delete')));
+    await tester.pumpAndSettle();
+    expect(find.text('Undo'), findsOneWidget);
+    await tester.pump(const Duration(seconds: 5));
+    await tester.pumpAndSettle();
+    expect(find.text('Undo'), findsNothing);
   });
 
   testWidgets('a group is made, then a spend is split with everyone in it', (tester) async {

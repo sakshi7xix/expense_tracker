@@ -40,7 +40,7 @@ test/          unit tests for pure logic, one widget test per screen
   named `stub` internally; that is never shown). Logo: `lib/ui/kit/bilby_mark.dart` (one charcoal
   line on cream, orange nose); app icon PNGs in `assets/icon/`, generated with flutter_launcher_icons.
 - Tabs: Home, Statistics, Friends. There is no receipts tab: a receipt shows when a spend is
-  added and when one is tapped (Edit, Copy, Delete).
+  added and when one is tapped (Edit opens the full form, Copy, Delete).
 - Keep forms short: anything with more than a couple of options opens a bottom sheet
   (see `category_sheet.dart`, `split_sheet.dart`).
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on every push.
@@ -82,4 +82,4 @@ flutter run
 - [x] S3 Name and logo: Bilby, minimal-line receipt bilby as the app icon and in the app
 - [x] S6 Friend codes: everyone has a personal 8-character code (Settings, Add a friend); friends
   are added only by typing it, they accept from the bell, then splits sync. No email or WhatsApp invites.
-- [ ] Edit a spend's amount and split
+- [x] S7 Edit a spend's amount, title, category and split from its receipt (synced); Undo messages time out

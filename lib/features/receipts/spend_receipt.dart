@@ -12,7 +12,8 @@ import '../../data/store.dart';
 import '../../ui/kit/curled_receipt.dart';
 import '../../ui/kit/motion.dart';
 import '../../ui/kit/paper.dart';
-import 'edit_spend_dialog.dart';
+import '../../ui/kit/glass.dart';
+import '../add/add_spend_sheet.dart';
 
 /// The lines printed on one spend's receipt.
 List<ReceiptLine> spendLines(Entry entry, Map<String, int> split) {
@@ -52,6 +53,9 @@ Future<void> showSpendReceipt(BuildContext context, Entry entry, String category
       ..showSnackBar(
         SnackBar(
           content: Text('Deleted ${entry.title}'),
+          // A message with a button stays until tapped unless told otherwise.
+          persist: false,
+          duration: Duration(seconds: 4),
           action: SnackBarAction(label: 'Undo', onPressed: () => model.write((s) => s.restoreSpend(entry.id))),
         ),
       );
@@ -152,7 +156,7 @@ Future<void> showSpendReceipt(BuildContext context, Entry entry, String category
                               label: 'Edit',
                               onTap: () {
                                 Navigator.of(dialog).pop();
-                                showEditSpendDialog(context, entry);
+                                showGlassSheet<void>(context, (_) => AddSpendSheet(editing: entry));
                               },
                             ),
                             SizedBox(width: 8),

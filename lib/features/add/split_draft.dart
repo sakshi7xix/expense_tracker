@@ -22,6 +22,21 @@ class SplitDraft {
 
   bool get active => friends.isNotEmpty;
 
+  /// Fills the draft from a saved spend: equal if the shares are even,
+  /// otherwise the exact amounts.
+  void load(Map<int, int> shares, int? payerFriendId, int total) {
+    clear();
+    friends.addAll(shares.keys);
+    payer = payerFriendId;
+    final mine = total - shares.values.fold<int>(0, (a, b) => a + b);
+    final even = computeShares(total: total, people: people, method: SplitMethod.equal);
+    final isEven = even.ok && people.every((p) => even.shares[p] == (p == me ? mine : shares[int.parse(p)]));
+    if (isEven) return;
+    method = SplitMethod.exact;
+    values[me] = (mine / 100).toStringAsFixed(2);
+    shares.forEach((id, share) => values['$id'] = (share / 100).toStringAsFixed(2));
+  }
+
   List<String> get people => [me, for (final id in friends) '$id'];
 
   void clear() {

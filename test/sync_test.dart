@@ -89,6 +89,28 @@ void main() {
     expect(bina.entriesForMonth(nov25), isEmpty);
   });
 
+  test('editing a shared spend updates it on the friend’s phone, and un-splitting takes it down', () async {
+    await befriend();
+    final binaOnAsha = asha.friends().single.id;
+    final id = asha.addSpend(title: 'Pizza', total: 60000, categoryId: food(asha), day: nov25, friendShares: {binaOnAsha: 30000});
+    await ashaSync.run();
+    await binaSync.run();
+    final ashaOnBina = bina.friendIdForUser('A')!;
+    expect(bina.balanceOf(ashaOnBina), -30000);
+
+    asha.updateSpend(id, title: 'Pizza and drinks', total: 80000, categoryId: food(asha), friendShares: {binaOnAsha: 40000});
+    await ashaSync.run();
+    await binaSync.run();
+    expect(bina.balanceOf(ashaOnBina), -40000);
+    expect(bina.entriesForMonth(nov25).single.title, 'Pizza and drinks');
+
+    asha.updateSpend(id, title: 'Pizza and drinks', total: 80000, categoryId: food(asha));
+    await ashaSync.run();
+    await binaSync.run();
+    expect(bina.entriesForMonth(nov25), isEmpty);
+    expect(bina.balanceOf(ashaOnBina), 0);
+  });
+
   test('a friend added by name before codes is linked when they accept', () async {
     final old = asha.addFriend('Bina');
     asha.addSpend(title: 'Cab', total: 30000, categoryId: food(asha), day: nov25, friendShares: {old: 15000});
