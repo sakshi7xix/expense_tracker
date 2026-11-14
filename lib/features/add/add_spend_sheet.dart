@@ -13,16 +13,16 @@ import 'receipt_dialog.dart';
 import 'split_draft.dart';
 import 'split_sheet.dart';
 
-/// A short form: amount, note, category and split. Category and split each
+/// A tall glass pop-up over Home: amount, note, category and split. Category and split each
 /// open their own sheet so the form itself stays three rows long.
-class AddSpendScreen extends StatefulWidget {
-  const AddSpendScreen({super.key});
+class AddSpendSheet extends StatefulWidget {
+  const AddSpendSheet({super.key});
 
   @override
-  State<AddSpendScreen> createState() => _AddSpendScreenState();
+  State<AddSpendSheet> createState() => _AddSpendSheetState();
 }
 
-class _AddSpendScreenState extends State<AddSpendScreen> {
+class _AddSpendSheetState extends State<AddSpendSheet> {
   final _amount = TextEditingController();
   final _title = TextEditingController();
   final _split = SplitDraft();
@@ -103,15 +103,42 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
     final categoryId = _categoryId ?? categories.first.id;
     final category = categories.firstWhere((c) => c.id == categoryId).name;
 
-    return Scaffold(
-      appBar: AppBar(title: Text('New spend'), centerTitle: true),
-      bottomNavigationBar: SafeArea(
-        child: Padding(
-          padding: EdgeInsets.fromLTRB(24, 8, 24, 16),
-          child: PillButton(key: Key('save-button'), label: 'Print stub', onPressed: _save),
-        ),
-      ),
-      body: SingleChildScrollView(
+    final media = MediaQuery.of(context);
+    final keyboard = media.viewInsets.bottom;
+    final height = (media.size.height * 0.9 - keyboard).clamp(320.0, media.size.height);
+
+    return Padding(
+      padding: EdgeInsets.only(bottom: keyboard),
+      child: SizedBox(
+        height: height,
+        child: SafeArea(
+          top: false,
+          child: Column(
+            children: [
+              SizedBox(height: 10),
+              const SheetGrab(),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 8),
+                child: Row(
+                  children: [
+                    IconButton(
+                      key: Key('close-add'),
+                      tooltip: 'Close',
+                      icon: Icon(Icons.close_rounded, color: StubColors.muted),
+                      onPressed: () => Navigator.of(context).pop(),
+                    ),
+                    Expanded(
+                      child: Text(
+                        'New spend',
+                        textAlign: TextAlign.center,
+                        style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: StubColors.ink),
+                      ),
+                    ),
+                    SizedBox(width: 48),
+                  ],
+                ),
+              ),
+              Expanded(child: SingleChildScrollView(
         padding: EdgeInsets.fromLTRB(StubSpace.gutter, 8, StubSpace.gutter, 24),
         child: Column(
           children: [
@@ -122,7 +149,7 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
               textAlign: TextAlign.center,
               keyboardType: TextInputType.numberWithOptions(decimal: true),
               style: TextStyle(fontSize: 52, fontWeight: FontWeight.w900, color: StubColors.ink),
-              decoration: InputDecoration(prefixText: '₹', hintText: '0', border: InputBorder.none, errorText: _error),
+              decoration: InputDecoration(prefixText: '₹', hintText: '0', border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none, errorText: _error),
               onChanged: (_) => setState(() {
                 _error = null;
                 if (_split.active) _split.prefill(parseAmount(_amount.text) ?? 0);
@@ -147,7 +174,7 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
                           controller: _title,
                           textCapitalization: TextCapitalization.sentences,
                           style: TextStyle(fontSize: 15, fontWeight: FontWeight.w800, color: StubColors.ink),
-                          decoration: InputDecoration(hintText: 'What was it for?', border: InputBorder.none),
+                          decoration: InputDecoration(hintText: 'What was it for?', border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none),
                         ),
                       ),
                     ],
@@ -183,6 +210,14 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
               ),
             ),
           ],
+        ),
+      )),
+              Padding(
+                padding: EdgeInsets.fromLTRB(24, 6, 24, 14),
+                child: PillButton(key: Key('save-button'), label: 'Add spend', onPressed: _save),
+              ),
+            ],
+          ),
         ),
       ),
     );

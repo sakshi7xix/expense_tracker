@@ -46,7 +46,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Spacer(),
-              Text('stub', style: text.titleMedium),
+              Text('Welcome', style: text.titleMedium),
               SizedBox(height: 12),
               Text('How much do you earn in a month?', style: text.displaySmall),
               SizedBox(height: 8),
@@ -61,7 +61,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   prefixText: '₹ ',
                   hintText: '15000',
                   errorText: _error,
-                  border: InputBorder.none,
+                  border: InputBorder.none, enabledBorder: InputBorder.none, focusedBorder: InputBorder.none,
                 ),
                 onSubmitted: (_) => _start(),
               ),

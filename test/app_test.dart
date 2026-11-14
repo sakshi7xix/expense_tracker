@@ -38,7 +38,7 @@ void main() {
     expect(find.text('No spends yet. Tap + to add one.'), findsOneWidget);
   });
 
-  testWidgets('adding a spend prints a stub and updates Home', (tester) async {
+  testWidgets('adding a spend prints a receipt and updates Home', (tester) async {
     final model = newModel();
     await start(tester, model);
 
@@ -48,7 +48,7 @@ void main() {
     await tester.enterText(find.byKey(const Key('title-field')), 'Chai with Riya');
     await tester.tap(find.byKey(const Key('save-button')));
     await tester.pumpAndSettle();
-    expect(find.text('STUB'), findsOneWidget);
+    expect(find.text('RECEIPT'), findsOneWidget);
     await tester.tap(find.text('Done'));
     await tester.pumpAndSettle();
 
@@ -147,14 +147,14 @@ void main() {
     expect(tester.widget<Text>(find.byKey(const Key('stats-period'))).data, 'Last 7 days · Today');
   });
 
-  testWidgets('Stubs shows one receipt per week with its total', (tester) async {
+  testWidgets('Receipts shows one receipt per week with its total', (tester) async {
     final model = newModel();
     final food = model.store.categories().first.id;
     model.store.addSpend(title: 'Groceries', total: 32650, categoryId: food, day: model.today);
     model.store.addSpend(title: 'Books', total: 82000, categoryId: food, day: DateTime(2026, 11, 9));
     await start(tester, model);
 
-    await tester.tap(find.byKey(const Key('nav-stubs')));
+    await tester.tap(find.byKey(const Key('nav-receipts')));
     await tester.pumpAndSettle();
     expect(find.text('Week 4'), findsOneWidget);
     expect(find.text('Groceries'), findsOneWidget);
