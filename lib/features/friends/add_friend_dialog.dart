@@ -166,7 +166,7 @@ class _AddFriendSheetState extends State<AddFriendSheet> {
                     },
                     style: TextStyle(fontFamily: 'IBMPlexMono', fontSize: 20, letterSpacing: 2, color: StubColors.ink),
                     decoration: InputDecoration(
-                      hintText: 'K7Q2 M9AB',
+                      hintText: 'e.g. ABCD 2345',
                       border: InputBorder.none,
                       enabledBorder: InputBorder.none,
                       focusedBorder: InputBorder.none,
