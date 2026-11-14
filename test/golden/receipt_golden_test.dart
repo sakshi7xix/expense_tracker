@@ -125,4 +125,14 @@ void main() {
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('add_friend.png'));
   });
+
+  testWidgets('weekly receipts preview', (tester) async {
+    await phone(tester);
+    await tester.tap(find.byKey(const Key('nav-receipts')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('receipts.png'));
+    await tester.dragFrom(const Offset(195, 300), const Offset(95, 0));
+    await tester.pump(const Duration(milliseconds: 16));
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('receipts_turning.png'));
+  });
 }

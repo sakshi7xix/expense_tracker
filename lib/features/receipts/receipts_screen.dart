@@ -1,3 +1,6 @@
+import 'dart:math' as math;
+
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../app_model.dart';
@@ -9,7 +12,8 @@ import '../../data/store.dart';
 import '../../ui/kit/motion.dart';
 import '../../ui/kit/paper.dart';
 
-/// One receipt per week of the month. Tap a week to unfold it.
+/// The month's weekly receipts on a turning 3D ring. Swipe sideways to spin
+/// it, or tap a receipt at the side to bring it to the front.
 class ReceiptsScreen extends StatefulWidget {
   const ReceiptsScreen({super.key});
 
@@ -17,8 +21,44 @@ class ReceiptsScreen extends StatefulWidget {
   State<ReceiptsScreen> createState() => _ReceiptsScreenState();
 }
 
-class _ReceiptsScreenState extends State<ReceiptsScreen> {
-  int? _open;
+class _ReceiptsScreenState extends State<ReceiptsScreen> with SingleTickerProviderStateMixin {
+  static const _cardWidth = 248.0;
+  static const _step = 0.78; // radians between neighbouring receipts
+  static const _radius = 300.0;
+
+  late final AnimationController _spin = AnimationController.unbounded(vsync: this);
+  bool _started = false;
+  int _snapped = -1;
+
+  @override
+  void initState() {
+    super.initState();
+    _spin.addListener(_tick);
+  }
+
+  @override
+  void dispose() {
+    _spin.dispose();
+    super.dispose();
+  }
+
+  /// A light click each time a new receipt reaches the front.
+  void _tick() {
+    final front = _spin.value.round();
+    if (front != _snapped) {
+      if (_snapped != -1) HapticFeedback.selectionClick();
+      _snapped = front;
+    }
+  }
+
+  void _settle(int target, int last) {
+    final to = target.clamp(0, last).toDouble();
+    if (StubMotion.reduced(context)) {
+      _spin.value = to;
+      return;
+    }
+    _spin.animateTo(to, duration: Duration(milliseconds: 520), curve: Curves.easeOutBack);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,139 +66,219 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> {
     final store = model.store;
     final today = model.today;
     final days = daysInMonth(today);
+    final weeks = (days + 6) ~/ 7;
     final currentWeek = (today.day - 1) ~/ 7;
-    final open = _open ?? currentWeek;
+    final last = weeks - 1;
     final weeklyBudget = store.budget * 7 ~/ days;
+
+    if (!_started) {
+      _started = true;
+      _spin.value = currentWeek.toDouble();
+      _snapped = currentWeek;
+    }
 
     final byWeek = <int, List<Entry>>{};
     for (final entry in store.entriesForMonth(today)) {
       final week = (int.parse(entry.day.substring(8)) - 1) ~/ 7;
       byWeek.putIfAbsent(week, () => []).add(entry);
     }
+    int totalOf(int week) => (byWeek[week] ?? const []).fold<int>(0, (s, e) => s + e.amount);
+    final text = Theme.of(context).textTheme;
 
     return SafeArea(
-      child: ListView(
-        padding: EdgeInsets.fromLTRB(28, 12, 28, 32),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Text('Receipts', style: Theme.of(context).textTheme.titleMedium),
-          Text(
-            '${monthName(today)} · one receipt for each week',
-            style: Theme.of(context).textTheme.bodyMedium,
+          Padding(
+            padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 0),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text('Receipts', style: text.titleMedium),
+                Text('${monthName(today)} · swipe to turn the weeks', style: text.bodyMedium),
+              ],
+            ),
           ),
-          SizedBox(height: 16),
-          for (var week = currentWeek; week >= 0; week--)
-            Entrance(
-              index: currentWeek - week,
-              rise: 26,
-              child: Padding(
-              padding: EdgeInsets.only(bottom: 16),
-              child: _WeekStub(
-                key: Key('week-${week + 1}'),
-                week: week,
-                month: today,
-                entries: byWeek[week] ?? const [],
-                weeklyBudget: weeklyBudget,
-                open: week == open,
-                onTap: () => setState(() => _open = week == open ? -1 : week),
+          Expanded(
+            child: GestureDetector(
+              behavior: HitTestBehavior.opaque,
+              onHorizontalDragStart: (_) => _spin.stop(),
+              onHorizontalDragUpdate: (d) {
+                _spin.value = (_spin.value - d.delta.dx / 190).clamp(-0.4, last + 0.4);
+              },
+              onHorizontalDragEnd: (d) {
+                final fling = -(d.primaryVelocity ?? 0) / 1400;
+                _settle((_spin.value + fling.clamp(-1.0, 1.0)).round(), last);
+              },
+              child: AnimatedBuilder(
+                animation: _spin,
+                builder: (context, _) {
+                  final pos = _spin.value;
+                  // Draw far receipts first so nearer ones sit on top.
+                  final order = [for (var w = 0; w <= last; w++) w]
+                    ..sort((a, b) => (b - pos).abs().compareTo((a - pos).abs()));
+                  return Stack(
+                    alignment: Alignment.center,
+                    clipBehavior: Clip.none,
+                    children: [
+                      for (final w in order)
+                        if ((w - pos).abs() < 2.6)
+                          _placed(
+                            context,
+                            offset: w - pos,
+                            onTap: () => _settle(w, last),
+                            child: _WeekReceipt(
+                              key: Key('week-${w + 1}'),
+                              week: w,
+                              month: today,
+                              entries: byWeek[w] ?? const [],
+                              upcoming: w > currentWeek,
+                            ),
+                          ),
+                    ],
+                  );
+                },
               ),
             ),
-            ),
+          ),
+          AnimatedBuilder(
+            animation: _spin,
+            builder: (context, _) {
+              final front = _spin.value.round().clamp(0, last);
+              final total = totalOf(front);
+              final gap = weeklyBudget - total;
+              return Padding(
+                padding: EdgeInsets.fromLTRB(StubSpace.gutter, 0, StubSpace.gutter, 18),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        for (var w = 0; w <= last; w++)
+                          AnimatedContainer(
+                            duration: StubMotion.base,
+                            curve: Curves.easeOutCubic,
+                            margin: EdgeInsets.symmetric(horizontal: 3),
+                            width: w == front ? 20 : 7,
+                            height: 7,
+                            decoration: BoxDecoration(
+                              color: w == front ? StubColors.ink : Color(0xFFD5D4D9),
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                          ),
+                      ],
+                    ),
+                    SizedBox(height: 12),
+                    Text(
+                      'Week ${front + 1} · ${formatInr(total)}',
+                      key: Key('week-summary'),
+                      style: TextStyle(fontSize: 17, fontWeight: FontWeight.w900, color: StubColors.ink),
+                    ),
+                    SizedBox(height: 2),
+                    Text(
+                      front > currentWeek
+                          ? 'Still to come'
+                          : gap >= 0
+                              ? '${formatInr(gap)} under the weekly ${formatInr(weeklyBudget)}'
+                              : '${formatInr(-gap)} over the weekly ${formatInr(weeklyBudget)}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w700,
+                        color: front > currentWeek
+                            ? StubColors.muted
+                            : gap >= 0
+                                ? StubColors.owed
+                                : StubColors.owe,
+                      ),
+                    ),
+                  ],
+                ),
+              );
+            },
+          ),
         ],
+      ),
+    );
+  }
+
+  /// Puts one receipt on the ring: [offset] 0 is the front, ±1 the sides.
+  /// Side receipts stay solid paper and are shaded darker, not see-through.
+  Widget _placed(BuildContext context, {required double offset, required VoidCallback onTap, required Widget child}) {
+    final angle = offset * _step;
+    final x = _radius * math.sin(angle);
+    final z = _radius * (1 - math.cos(angle)) + 40 * math.min(1.0, offset.abs());
+    final shade = 0.22 * math.min(1.0, offset.abs());
+    final far = offset.abs();
+    final opacity = far < 1.3 ? 1.0 : (1 - (far - 1.3) / 1.1).clamp(0.0, 1.0);
+    return Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.0012)
+        ..translateByDouble(x, -10, z, 1)
+        ..rotateY(-angle * 0.9),
+      child: Opacity(
+        opacity: opacity,
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(Color.fromRGBO(24, 24, 32, shade), BlendMode.srcATop),
+          child: IgnorePointer(
+            ignoring: far < 0.5,
+            child: GestureDetector(onTap: onTap, child: SizedBox(width: _cardWidth, child: child)),
+          ),
+        ),
       ),
     );
   }
 }
 
-class _WeekStub extends StatelessWidget {
-  const _WeekStub({
-    super.key,
-    required this.week,
-    required this.month,
-    required this.entries,
-    required this.weeklyBudget,
-    required this.open,
-    required this.onTap,
-  });
+class _WeekReceipt extends StatelessWidget {
+  const _WeekReceipt({super.key, required this.week, required this.month, required this.entries, required this.upcoming});
 
   final int week;
   final DateTime month;
   final List<Entry> entries;
-  final int weeklyBudget;
-  final bool open;
-  final VoidCallback onTap;
+  final bool upcoming;
 
   @override
   Widget build(BuildContext context) {
     final total = entries.fold<int>(0, (sum, e) => sum + e.amount);
     final first = week * 7 + 1;
     final last = (first + 6).clamp(1, daysInMonth(month));
-    final gap = weeklyBudget - total;
-    final shown = entries.take(6).toList();
-    return Pressable(
-      scale: 0.98,
-      onTap: onTap,
-      child: AnimatedScale(
-        scale: open ? 1 : 0.96,
-        duration: Duration(milliseconds: 200),
-        child: Paper(
-          elevation: open ? 10 : 4,
-          padding: EdgeInsets.fromLTRB(16, 14, 16, 18),
-          child: AnimatedSize(
-            duration: Duration(milliseconds: 260),
-            curve: Curves.easeOutCubic,
-            alignment: Alignment.topCenter,
-            child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              Row(
-                children: [
-                  Expanded(
-                    child: Text(
-                      'Week ${week + 1}',
-                      style: receiptMono.copyWith(fontWeight: FontWeight.w500, color: StubColors.ink),
-                    ),
-                  ),
-                  Text(
-                    formatInr(total, decimals: true),
-                    style: receiptMono.copyWith(fontWeight: FontWeight.w500, color: StubColors.ink),
-                  ),
-                ],
-              ),
-              if (open) ...[
-                Text(
-                  '$first–$last ${monthShort(month)}'.toUpperCase(),
-                  style: receiptMono.copyWith(fontSize: 10, letterSpacing: 0.8, color: Color(0xFF7B7A82)),
-                ),
-                const DashedRule(),
-                if (entries.isEmpty) Text('Nothing spent this week', style: receiptMono),
-                for (final entry in shown)
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: receiptMono),
-                      ),
-                      SizedBox(width: 10),
-                      Text(formatInr(entry.amount, decimals: true), style: receiptMono),
-                    ],
-                  ),
-                if (entries.length > shown.length)
-                  Text('+ ${entries.length - shown.length} more', style: receiptMono),
-                const DashedRule(),
-                Text(
-                  gap >= 0
-                      ? '${formatInr(gap)} under the weekly ${formatInr(weeklyBudget)}'
-                      : '${formatInr(-gap)} over the weekly ${formatInr(weeklyBudget)}',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w700,
-                    color: gap >= 0 ? StubColors.owed : StubColors.owe,
-                  ),
-                ),
+    final shown = entries.take(7).toList();
+    final bold = receiptMono.copyWith(fontWeight: FontWeight.w500, color: StubColors.ink);
+    return Paper(
+      padding: EdgeInsets.fromLTRB(16, 16, 16, 20),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Text('Week ${week + 1}', textAlign: TextAlign.center, style: bold.copyWith(fontSize: 14, letterSpacing: 2)),
+          Text(
+            '$first–$last ${monthShort(month)}'.toUpperCase(),
+            textAlign: TextAlign.center,
+            style: receiptMono.copyWith(fontSize: 10, letterSpacing: 0.8, color: Color(0xFF7B7A82)),
+          ),
+          const DashedRule(),
+          if (entries.isEmpty)
+            Text(upcoming ? 'Not here yet' : 'Nothing spent', textAlign: TextAlign.center, style: receiptMono),
+          for (final entry in shown)
+            Row(
+              children: [
+                Expanded(child: Text(entry.title, maxLines: 1, overflow: TextOverflow.ellipsis, style: receiptMono)),
+                SizedBox(width: 10),
+                Text(formatInr(entry.amount, decimals: true), style: receiptMono),
               ],
+            ),
+          if (entries.length > shown.length) Text('+ ${entries.length - shown.length} more', style: receiptMono),
+          const DashedRule(),
+          Row(
+            children: [
+              Expanded(child: Text('TOTAL', style: bold)),
+              Text(formatInr(total, decimals: true), style: bold),
             ],
           ),
-          ),
-        ),
+          SizedBox(height: 10),
+          SizedBox(height: 26, child: CustomPaint(painter: BarcodePainter())),
+        ],
       ),
     );
   }

@@ -156,15 +156,18 @@ void main() {
 
     await tester.tap(find.byKey(const Key('nav-receipts')));
     await tester.pumpAndSettle();
-    expect(find.text('Week 4'), findsOneWidget);
+    String summary() => tester.widget<Text>(find.byKey(const Key('week-summary'))).data!;
+    expect(summary(), 'Week 4 · ₹327');
     expect(find.text('Groceries'), findsOneWidget);
-    expect(find.text('Books'), findsNothing);
 
-    await tester.ensureVisible(find.byKey(const Key('week-2')));
-    await tester.tap(find.byKey(const Key('week-2')));
+    await tester.tap(find.byKey(const Key('week-3')));
     await tester.pumpAndSettle();
+    expect(summary(), 'Week 3 · ₹0');
+
+    await tester.dragFrom(tester.getCenter(find.byKey(const Key('week-summary'))) - const Offset(0, 160), const Offset(220, 0));
+    await tester.pumpAndSettle();
+    expect(summary(), 'Week 2 · ₹820');
     expect(find.text('Books'), findsOneWidget);
-    expect(find.text('₹820.00'), findsWidgets);
   });
 
   testWidgets('category is picked from a sheet and saved with the spend', (tester) async {
