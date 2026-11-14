@@ -164,7 +164,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(summary(), 'Week 3 · ₹0');
 
-    await tester.drag(find.byKey(const Key('week-3')), const Offset(220, 0));
+    await tester.dragFrom(tester.getCenter(find.byKey(const Key('week-summary'))) - const Offset(0, 160), const Offset(220, 0));
     await tester.pumpAndSettle();
     expect(summary(), 'Week 2 · ₹820');
     expect(find.text('Books'), findsOneWidget);
