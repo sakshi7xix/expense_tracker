@@ -222,6 +222,21 @@ void main() {
       expect(store.entry(id), isNull);
     });
 
+    test('editing a split spend changes the amount and everyone\'s share', () {
+      final riya = store.addFriend('Riya');
+      final id = store.addSpend(title: 'Dinner', total: 12000, categoryId: food, day: nov25, friendShares: {riya: 6000});
+      store.updateSpend(id, title: 'Dinner out', total: 20000, categoryId: shop, friendShares: {riya: 10000});
+      final e = store.entriesForMonth(nov).single;
+      expect((e.title, e.total, e.amount, e.categoryId), ('Dinner out', 20000, 10000, shop));
+      expect(store.balanceOf(riya), 10000);
+      expect(store.splitOfSpend(id).shares, {riya: 10000});
+      expect(store.splitOfSpend(id).payer, isNull);
+
+      store.updateSpend(id, title: 'Dinner out', total: 20000, categoryId: shop);
+      expect(store.balanceOf(riya), 0, reason: 'no longer split');
+      expect(store.spentInMonth(nov), 20000);
+    });
+
     test('a bill due on the 31st is charged on the last day of a short month', () {
       store.addBill(name: 'Rent', amount: 280000, dueDay: 31, categoryId: food, autopay: true);
       expect(store.runAutopays(DateTime(2026, 11, 29)), isEmpty);

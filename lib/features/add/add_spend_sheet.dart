@@ -17,10 +17,13 @@ import 'split_sheet.dart';
 /// A tall glass pop-up over Home: amount, note, category and split. Category and split each
 /// open their own sheet so the form itself stays three rows long.
 class AddSpendSheet extends StatefulWidget {
-  const AddSpendSheet({super.key, this.group});
+  const AddSpendSheet({super.key, this.group, this.editing});
 
   /// Starts the spend as a split with everyone in this group.
   final Group? group;
+
+  /// A saved spend to change instead of adding a new one.
+  final Entry? editing;
 
   @override
   State<AddSpendSheet> createState() => _AddSpendSheetState();
@@ -38,6 +41,21 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
     super.initState();
     final group = widget.group;
     if (group != null) _split.useGroup(group.id, group.name, group.memberIds, 0);
+  }
+
+  bool _loaded = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final e = widget.editing;
+    if (e == null || _loaded) return;
+    _loaded = true;
+    _amount.text = e.total % 100 == 0 ? '${e.total ~/ 100}' : (e.total / 100).toStringAsFixed(2);
+    _title.text = e.title;
+    _categoryId = e.categoryId;
+    final split = StubScope.of(context).store.splitOfSpend(e.id);
+    if (split.shares.isNotEmpty) _split.load(split.shares, split.payer, e.total);
   }
 
   @override
@@ -72,6 +90,26 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
     final names = {for (final f in store.friends()) f.id: f.name};
     final mine = split == null ? total : split.shares[me]!;
     final today = model.today;
+
+    final editing = widget.editing;
+    if (editing != null) {
+      model.write(
+        (s) => s.updateSpend(
+          editing.id,
+          title: title,
+          total: total,
+          categoryId: categoryId,
+          friendShares: split == null ? const {} : {for (final id in _split.friends) id: split.shares['$id']!},
+          payerFriendId: _split.active ? _split.payer : null,
+        ),
+      );
+      final messenger = ScaffoldMessenger.of(context);
+      Navigator.of(context).pop();
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(SnackBar(content: Text('Saved $title')));
+      return;
+    }
 
     model.write(
       (s) => s.addSpend(
@@ -143,7 +181,7 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
                     ),
                     Expanded(
                       child: Text(
-                        'New spend',
+                        widget.editing == null ? 'New spend' : 'Edit spend',
                         textAlign: TextAlign.center,
                         style: TextStyle(fontSize: 17, fontWeight: FontWeight.w800, color: StubColors.ink),
                       ),
@@ -228,7 +266,7 @@ class _AddSpendSheetState extends State<AddSpendSheet> {
       )),
               Padding(
                 padding: EdgeInsets.fromLTRB(24, 6, 24, 14),
-                child: PillButton(key: Key('save-button'), label: 'Add spend', onPressed: _save),
+                child: PillButton(key: Key('save-button'), label: widget.editing == null ? 'Add spend' : 'Save', onPressed: _save),
               ),
             ],
           ),

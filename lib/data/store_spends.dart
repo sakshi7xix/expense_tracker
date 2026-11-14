@@ -52,6 +52,68 @@ extension Spends on StubStore {
     });
   }
 
+  /// Changes a spend's title, amount, category and split. Keeps its day and
+  /// group, and queues the change to go online if it is shared.
+  void updateSpend(
+    int entryId, {
+    required String title,
+    required int total,
+    required int categoryId,
+    Map<int, int> friendShares = const {},
+    int? payerFriendId,
+  }) {
+    final others = friendShares.values.fold<int>(0, (a, b) => a + b);
+    final mine = total - others;
+    if (total <= 0 || mine < 0) throw ArgumentError('Shares do not fit the total');
+    if (payerFriendId != null && !friendShares.containsKey(payerFriendId)) {
+      throw ArgumentError('The payer must be part of the split');
+    }
+    _tx(() {
+      final day = db.select('SELECT day FROM entry WHERE id = ?', [entryId]).first['day'] as String;
+      db.execute(
+        'UPDATE entry SET title = ?, amount = ?, total = ?, category_id = ?, dirty = 1 WHERE id = ?',
+        [title, mine, total, categoryId, entryId],
+      );
+      db.execute("DELETE FROM ledger WHERE entry_id = ? AND kind = 'split'", [entryId]);
+      db.execute('DELETE FROM entry_share WHERE entry_id = ?', [entryId]);
+      void lend(int friendId, int amount) {
+        if (amount == 0) return;
+        db.execute(
+          'INSERT INTO ledger (friend_id, entry_id, title, amount, kind, day, created_at) '
+          "VALUES (?, ?, ?, ?, 'split', ?, ?)",
+          [friendId, entryId, title, amount, day, _now],
+        );
+      }
+
+      friendShares.forEach((friendId, share) {
+        db.execute('INSERT INTO entry_share (entry_id, friend_id, share) VALUES (?, ?, ?)', [entryId, friendId, share]);
+      });
+      if (payerFriendId == null) {
+        friendShares.forEach(lend);
+      } else {
+        lend(payerFriendId, -mine);
+      }
+    });
+  }
+
+  /// Who a spend was split with (friend id to share) and which friend paid,
+  /// if not you. Rebuilt from the ledger for spends saved before shares were
+  /// kept.
+  ({Map<int, int> shares, int? payer}) splitOfSpend(int entryId) {
+    final lines = db.select("SELECT friend_id, amount FROM ledger WHERE entry_id = ? AND kind = 'split' AND deleted = 0", [entryId]);
+    final payer = lines.where((r) => (r['amount'] as int) < 0).map((r) => r['friend_id'] as int).firstOrNull;
+    final saved = {
+      for (final r in db.select('SELECT friend_id, share FROM entry_share WHERE entry_id = ?', [entryId]))
+        r['friend_id'] as int: r['share'] as int,
+    };
+    if (saved.isNotEmpty) return (shares: saved, payer: payer);
+    final e = db.select('SELECT amount, total FROM entry WHERE id = ?', [entryId]).first;
+    if (payer == null) {
+      return (shares: {for (final r in lines) r['friend_id'] as int: r['amount'] as int}, payer: null);
+    }
+    return (shares: {payer: (e['total'] as int) - (e['amount'] as int)}, payer: payer);
+  }
+
   /// Soft-deletes a spend and its split lines; [restoreSpend] undoes it.
   void deleteSpend(int entryId) => _setDeleted(entryId, 1);
 

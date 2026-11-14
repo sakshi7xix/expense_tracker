@@ -142,8 +142,16 @@ extension SyncStore on StubStore {
       final deleted = (e['deleted'] as int) == 1;
       final ready = shares.isNotEmpty && shares.keys.every((f) => users[f] != null) && shares.values.fold<int>(mine, (a, b) => a + b) == total;
       if (!ready) {
-        // Not shareable yet. Nothing online to update, so stop asking.
-        if (remoteId == null && shares.isEmpty) db.execute('UPDATE entry SET dirty = 0 WHERE id = ?', [entryId]);
+        if (remoteId != null && shares.isEmpty) {
+          // It was shared but now it's only yours: take it down online.
+          out.add(OutgoingExpense(
+            entryId: entryId, remoteId: remoteId, title: e['title'] as String, total: total,
+            day: e['day'] as String, payer: '', shares: const {}, deleted: true,
+          ));
+        } else if (remoteId == null && shares.isEmpty) {
+          // Not shareable yet. Nothing online to update, so stop asking.
+          db.execute('UPDATE entry SET dirty = 0 WHERE id = ?', [entryId]);
+        }
         continue;
       }
       if (deleted && remoteId == null) {

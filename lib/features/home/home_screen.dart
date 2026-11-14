@@ -219,6 +219,8 @@ class _SpendRow extends StatelessWidget {
       ..showSnackBar(
         SnackBar(
           content: Text('Deleted ${entry.title}'),
+          persist: false,
+          duration: Duration(seconds: 4),
           action: SnackBarAction(
             label: 'Undo',
             onPressed: () => model.write((store) => store.restoreSpend(entry.id)),
