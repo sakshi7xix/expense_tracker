@@ -89,6 +89,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(auth.deleted, isTrue);
+    await tester.scrollUntilVisible(find.byKey(const Key('profile-name')), -200);
     expect(profileName(tester), 'Not signed in');
     expect(find.text('Your account was deleted'), findsOneWidget);
     expect(model.store.budget, 1500000);
