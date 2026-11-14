@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import '../../core/categories.dart';
 import '../../core/tokens.dart';
 import '../../data/models.dart';
+import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
 
@@ -11,12 +12,9 @@ Future<int?> showCategorySheet(BuildContext context, List<Category> categories, 
   final byName = {for (final c in categories) c.name: c};
   final listed = {for (final (_, names) in categoryGroups) ...names};
   final extra = [for (final c in categories) if (!listed.contains(c.name)) c];
-  return showModalBottomSheet<int>(
-    context: context,
-    isScrollControlled: true,
-    backgroundColor: StubColors.page,
-    shape: RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(28))),
-    builder: (context) => SafeArea(
+  return showGlassSheet<int>(
+    context,
+    (context) => SafeArea(
       child: Padding(
         padding: EdgeInsets.fromLTRB(16, 12, 16, 16),
         child: Column(
