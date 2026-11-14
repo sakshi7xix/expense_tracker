@@ -119,8 +119,19 @@ class _PillButtonState extends State<PillButton> with SingleTickerProviderStateM
                     ),
                     child: ClipRRect(
                       borderRadius: BorderRadius.circular(27),
-                      child: Stack(
+                      child: Material(
+                        type: MaterialType.transparency,
+                        child: InkWell(
+                          customBorder: StadiumBorder(),
+                          splashColor: Colors.white.withValues(alpha: 0.4),
+                          highlightColor: Colors.transparent,
+                          onTap: enabled ? _tap : null,
+                          onTapDown: enabled ? (_) => setState(() => _down = true) : null,
+                          onTapUp: (_) => setState(() => _down = false),
+                          onTapCancel: () => setState(() => _down = false),
+                          child: Stack(
                         alignment: Alignment.center,
+                        fit: full != null && !done ? StackFit.expand : StackFit.loose,
                         children: [
                           if (enabled && !done && _loop.isAnimating)
                             Positioned.fill(child: CustomPaint(painter: _Sheen(t))),
@@ -134,24 +145,11 @@ class _PillButtonState extends State<PillButton> with SingleTickerProviderStateM
                                     curve: Curves.easeOutCubic,
                                     builder: (context, v, _) => CustomPaint(size: Size(24, 24), painter: _Tick(v)),
                                   )
-                                : KeyedSubtree(key: ValueKey(widget.busy), child: child!),
-                          ),
-                          Positioned.fill(
-                            child: Material(
-                              type: MaterialType.transparency,
-                              child: InkWell(
-                                customBorder: StadiumBorder(),
-                                splashColor: Colors.white.withValues(alpha: 0.4),
-                                highlightColor: Colors.transparent,
-                                onTap: enabled ? _tap : null,
-                                onTapDown: enabled ? (_) => setState(() => _down = true) : null,
-                                onTapUp: (_) => setState(() => _down = false),
-                                onTapCancel: () => setState(() => _down = false),
-                                child: SizedBox.expand(),
-                              ),
-                            ),
+                                : Center(key: ValueKey(widget.busy), child: child!),
                           ),
                         ],
+                      ),
+                        ),
                       ),
                     ),
                   );
@@ -316,7 +314,22 @@ class _FrostButtonState extends State<FrostButton> with SingleTickerProviderStat
                   borderRadius: radius,
                   border: Border.all(color: StubColors.pop.withValues(alpha: _down ? 0.75 : 0.38), width: _down ? 2 : 1.5),
                 ),
-                child: Stack(
+                child: Material(
+                  type: MaterialType.transparency,
+                  child: InkWell(
+                    borderRadius: radius,
+                    splashColor: StubColors.pop.withValues(alpha: 0.22),
+                    highlightColor: Colors.transparent,
+                    onTap: enabled
+                        ? () {
+                            HapticFeedback.selectionClick();
+                            widget.onPressed!();
+                          }
+                        : null,
+                    onTapDown: enabled ? (_) => setState(() => _down = true) : null,
+                    onTapUp: (_) => setState(() => _down = false),
+                    onTapCancel: () => setState(() => _down = false),
+                    child: Stack(
                   fit: StackFit.expand,
                   children: [
                     if (enabled)
@@ -356,24 +369,9 @@ class _FrostButtonState extends State<FrostButton> with SingleTickerProviderStat
                         ],
                       ),
                     ),
-                    Material(
-                      type: MaterialType.transparency,
-                      child: InkWell(
-                        borderRadius: radius,
-                        splashColor: StubColors.pop.withValues(alpha: 0.22),
-                        highlightColor: Colors.transparent,
-                        onTap: enabled
-                            ? () {
-                                HapticFeedback.selectionClick();
-                                widget.onPressed!();
-                              }
-                            : null,
-                        onTapDown: enabled ? (_) => setState(() => _down = true) : null,
-                        onTapUp: (_) => setState(() => _down = false),
-                        onTapCancel: () => setState(() => _down = false),
-                      ),
-                    ),
                   ],
+                ),
+                  ),
                 ),
               ),
             ),

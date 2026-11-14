@@ -34,7 +34,7 @@ void main() {
     expect(cleanName('x' * 61), isNull);
   });
 
-  testWidgets('signing in: email, code, then name and 18+', (tester) async {
+  testWidgets('signing in: email, code, then your name', (tester) async {
     final auth = FakeAuth();
     final model = modelWith(auth);
     await openSettings(tester, model);
@@ -61,7 +61,7 @@ void main() {
     expect(find.textContaining('wrong or has expired'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('signin-code')), '123456');
     await tester.pumpAndSettle();
-    expect(find.text('About you'), findsOneWidget);
+    expect(find.text('Nice to meet you'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('signin-create')));
     await tester.pump();
