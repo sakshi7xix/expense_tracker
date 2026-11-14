@@ -4,6 +4,7 @@ import '../../core/categories.dart';
 import '../../core/tokens.dart';
 import '../../data/models.dart';
 import '../../ui/kit/kit.dart';
+import '../../ui/kit/motion.dart';
 
 /// A grid of every category. Returns the chosen category id.
 Future<int?> showCategorySheet(BuildContext context, List<Category> categories, int selectedId) {
@@ -65,9 +66,9 @@ Widget _cell(BuildContext context, Category c, int selectedId) {
   final selected = c.id == selectedId;
   return SizedBox(
     width: 80,
-    child: GestureDetector(
+    child: Pressable(
       key: Key('cat-${c.name}'),
-      behavior: HitTestBehavior.opaque,
+      scale: 0.88,
       onTap: () => Navigator.of(context).pop(c.id),
       child: Column(
         mainAxisSize: MainAxisSize.min,

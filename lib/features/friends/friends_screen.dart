@@ -6,6 +6,7 @@ import '../../core/tokens.dart';
 import '../../data/models.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
+import '../../ui/kit/motion.dart';
 import 'add_friend_dialog.dart';
 
 /// What you are owed and what you owe, friend by friend.
@@ -36,10 +37,14 @@ class FriendsScreen extends StatelessWidget {
               padding: EdgeInsets.symmetric(vertical: 20),
               child: Center(child: Text('Add a friend to start splitting.', style: text.bodyMedium)),
             ),
-          for (final friend in friends)
-            Padding(
-              padding: EdgeInsets.only(bottom: StubSpace.gap),
-              child: _FriendRow(friend: friend),
+          for (final (i, friend) in friends.indexed)
+            Entrance(
+              key: ValueKey(friend.id),
+              index: 1 + i,
+              child: Padding(
+                padding: EdgeInsets.only(bottom: StubSpace.gap),
+                child: _FriendRow(friend: friend),
+              ),
             ),
           Align(
             alignment: Alignment.centerLeft,
@@ -90,8 +95,9 @@ class _FriendRow extends StatelessWidget {
         : balance < 0
             ? 'you owe'
             : 'settled up';
-    return GestureDetector(
+    return Pressable(
       key: Key('friend-row-${friend.id}'),
+      scale: 0.97,
       onTap: () => showModalBottomSheet<void>(
         context: context,
         isScrollControlled: true,

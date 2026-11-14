@@ -6,6 +6,7 @@ import '../../core/split.dart';
 import '../../core/tokens.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
+import '../../ui/kit/motion.dart';
 import '../friends/add_friend_dialog.dart';
 import 'split_draft.dart';
 
@@ -162,9 +163,9 @@ class _SplitSheetState extends State<SplitSheet> {
                                 children: [
                                   for (final method in SplitMethod.values)
                                     Expanded(
-                                      child: GestureDetector(
+                                      child: Pressable(
                                         key: Key('method-${method.name}'),
-                                        behavior: HitTestBehavior.opaque,
+                                        scale: 0.92,
                                         onTap: () => _reseed(() {
                                           _draft.method = method;
                                           _draft.prefill(total ?? 0);
@@ -287,11 +288,10 @@ class _Person extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      button: true,
       selected: selected,
-      label: add ? 'Add a friend' : name,
-      child: GestureDetector(
-        behavior: HitTestBehavior.opaque,
+      child: Pressable(
+        scale: 0.88,
+        label: add ? 'Add a friend' : name,
         onTap: onTap,
         child: Padding(
           padding: EdgeInsets.only(right: 12),

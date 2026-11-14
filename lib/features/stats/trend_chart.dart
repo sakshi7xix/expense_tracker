@@ -15,7 +15,11 @@ class TrendChart extends StatelessWidget {
     required this.selected,
     required this.onSelect,
     this.fromZero = true,
+    this.drawn = 1,
   });
+
+  /// How much of the line is drawn, 0 to 1, for the draw-in animation.
+  final double drawn;
 
   /// Paise per point.
   final List<int> values;
@@ -48,7 +52,7 @@ class TrendChart extends StatelessWidget {
           onHorizontalDragUpdate: (d) => pick(d.localPosition.dx),
           child: CustomPaint(
             size: Size(width, 200),
-            painter: _TrendPainter(values, labels, selected, fromZero),
+            painter: _TrendPainter(values, labels, selected, fromZero, drawn),
           ),
         );
       },
@@ -57,7 +61,9 @@ class TrendChart extends StatelessWidget {
 }
 
 class _TrendPainter extends CustomPainter {
-  _TrendPainter(this.values, this.labels, this.selected, this.fromZero);
+  _TrendPainter(this.values, this.labels, this.selected, this.fromZero, this.drawn);
+
+  final double drawn;
 
   final List<int> values;
   final List<String> labels;
@@ -93,8 +99,10 @@ class _TrendPainter extends CustomPainter {
         to.dy,
       );
     }
+    final metric = path.computeMetrics().firstOrNull;
+    final visible = metric == null ? path : metric.extractPath(0, metric.length * drawn);
     canvas.drawPath(
-      path,
+      visible,
       Paint()
         ..color = StubColors.ink
         ..style = PaintingStyle.stroke
@@ -104,9 +112,14 @@ class _TrendPainter extends CustomPainter {
     );
 
     final index = selected.clamp(0, n - 1).toInt();
+    final reveal = ((drawn - 0.8) / 0.2).clamp(0.0, 1.0);
+    if (reveal == 0) {
+      _labels(canvas, size, n, x, index);
+      return;
+    }
     final point = points[index];
     final dash = Paint()
-      ..color = Color(0xFF9A99A0)
+      ..color = Color(0xFF9A99A0).withValues(alpha: reveal)
       ..strokeWidth = 1.2;
     for (double dy = point.dy + 9; dy < bottom + 6; dy += 7) {
       canvas.drawLine(Offset(point.dx, dy), Offset(point.dx, math.min(dy + 3, bottom + 6)), dash);
@@ -115,14 +128,19 @@ class _TrendPainter extends CustomPainter {
     final tip = TextPainter(
       text: TextSpan(
         text: formatInr(values[index]),
-        style: TextStyle(color: Colors.white, fontSize: 11.5, fontWeight: FontWeight.w800, fontFamily: 'Nunito'),
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: reveal),
+          fontSize: 11.5,
+          fontWeight: FontWeight.w800,
+          fontFamily: 'Nunito',
+        ),
       ),
       textDirection: TextDirection.ltr,
     )..layout();
     final bubbleWidth = tip.width + 18;
     final left = (point.dx - bubbleWidth / 2).clamp(2.0, size.width - bubbleWidth - 2).toDouble();
     final bubbleTop = math.max(2.0, point.dy - 38);
-    final ink = Paint()..color = StubColors.ink;
+    final ink = Paint()..color = StubColors.ink.withValues(alpha: reveal);
     canvas.drawRRect(
       RRect.fromRectAndRadius(Rect.fromLTWH(left, bubbleTop, bubbleWidth, 24), Radius.circular(8)),
       ink,
@@ -137,8 +155,13 @@ class _TrendPainter extends CustomPainter {
     );
     tip.paint(canvas, Offset(left + 9, bubbleTop + (24 - tip.height) / 2));
 
-    canvas.drawCircle(point, 6.5, Paint()..color = Colors.white);
-    canvas.drawCircle(point, 4.6, Paint()..color = StubColors.pop);
+    final pop = Curves.easeOutBack.transform(reveal);
+    canvas.drawCircle(point, 6.5 * pop, Paint()..color = Colors.white);
+    canvas.drawCircle(point, 4.6 * pop, Paint()..color = StubColors.pop);
+    _labels(canvas, size, n, x, index);
+  }
+
+  void _labels(Canvas canvas, Size size, int n, double Function(int) x, int index) {
 
     for (var i = 0; i < n && i < labels.length; i++) {
       if (labels[i].isEmpty) continue;
@@ -161,5 +184,9 @@ class _TrendPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(_TrendPainter old) =>
-      old.values != values || old.selected != selected || old.labels != labels || old.fromZero != fromZero;
+      old.values != values ||
+      old.selected != selected ||
+      old.labels != labels ||
+      old.fromZero != fromZero ||
+      old.drawn != drawn;
 }

@@ -6,6 +6,7 @@ import '../../core/money.dart';
 import '../../core/tokens.dart';
 import '../../data/store.dart';
 import '../../ui/kit/kit.dart';
+import '../../ui/kit/motion.dart';
 import 'trend_chart.dart';
 
 enum StatsRange { week, month, year }
@@ -66,10 +67,15 @@ class _StatsScreenState extends State<StatsScreen> {
           Center(child: Text('Statistics', style: text.titleMedium)),
           SizedBox(height: 16),
           Center(
-            child: Text(
-              formatInr(total),
-              key: Key('stats-total'),
-              style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: StubColors.ink),
+            child: TweenAnimationBuilder<double>(
+              tween: Tween(end: total.toDouble()),
+              duration: Duration(milliseconds: 600),
+              curve: Curves.easeOutCubic,
+              builder: (context, v, _) => Text(
+                formatInr(v.round()),
+                key: Key('stats-total'),
+                style: TextStyle(fontSize: 30, fontWeight: FontWeight.w900, color: StubColors.ink),
+              ),
             ),
           ),
           Center(child: Text('$period · ${pointNames[selected]}', key: Key('stats-period'), style: text.bodyMedium)),
@@ -110,12 +116,19 @@ class _StatsScreenState extends State<StatsScreen> {
             ),
           ),
           SizedBox(height: 8),
-          TrendChart(
-            values: values,
-            labels: labels,
-            selected: selected,
-            fromZero: _range != StatsRange.year,
-            onSelect: (i) => setState(() => _selected = i),
+          TweenAnimationBuilder<double>(
+            key: ValueKey(_range),
+            tween: Tween(begin: StubMotion.reduced(context) ? 1 : 0, end: 1),
+            duration: Duration(milliseconds: 900),
+            curve: Curves.easeInOutCubic,
+            builder: (context, drawn, _) => TrendChart(
+              values: values,
+              labels: labels,
+              selected: selected,
+              drawn: drawn,
+              fromZero: _range != StatsRange.year,
+              onSelect: (i) => setState(() => _selected = i),
+            ),
           ),
           SizedBox(height: 12),
           Text('Top spending', style: text.titleMedium),
@@ -125,8 +138,11 @@ class _StatsScreenState extends State<StatsScreen> {
               padding: EdgeInsets.symmetric(vertical: 16),
               child: Center(child: Text('Nothing spent this month yet.', style: text.bodyMedium)),
             ),
-          for (final entry in byCategory.entries)
-            Padding(
+          for (final (i, entry) in byCategory.entries.indexed)
+            Entrance(
+              key: ValueKey(entry.key),
+              index: i,
+              child: Padding(
               padding: EdgeInsets.only(bottom: StubSpace.gap),
               child: SoftCard(
                 child: Row(
@@ -155,6 +171,7 @@ class _StatsScreenState extends State<StatsScreen> {
                   ],
                 ),
               ),
+            ),
             ),
         ],
       ),
