@@ -8,22 +8,33 @@ import '../../data/store.dart';
 import '../../ui/kit/glass.dart';
 import '../../ui/kit/kit.dart';
 import '../../ui/kit/motion.dart';
+import 'activity_view.dart';
 import 'add_friend_dialog.dart';
+import 'friend_sheet.dart';
+import 'groups_view.dart';
 
-/// What you are owed and what you owe, friend by friend.
-class FriendsScreen extends StatelessWidget {
+enum FriendsTab { friends, groups, activity }
+
+/// What you are owed and what you owe, then friends, groups or activity.
+class FriendsScreen extends StatefulWidget {
   const FriendsScreen({super.key});
+
+  @override
+  State<FriendsScreen> createState() => _FriendsScreenState();
+}
+
+class _FriendsScreenState extends State<FriendsScreen> {
+  FriendsTab _tab = FriendsTab.friends;
 
   @override
   Widget build(BuildContext context) {
     final store = StubScope.of(context).store;
-    final friends = store.friends();
     final text = Theme.of(context).textTheme;
     return SafeArea(
       child: ListView(
         padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 24),
         children: [
-          Text('Friends', style: text.titleMedium),
+          Center(child: Text('Friends', style: text.titleMedium)),
           SizedBox(height: 14),
           Row(
             children: [
@@ -32,32 +43,107 @@ class FriendsScreen extends StatelessWidget {
               Expanded(child: _Total(label: 'You owe', paise: store.youOwe, color: StubColors.owe)),
             ],
           ),
-          SizedBox(height: 16),
-          if (friends.isEmpty)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 20),
-              child: Center(child: Text('Add a friend to start splitting.', style: text.bodyMedium)),
-            ),
-          for (final (i, friend) in friends.indexed)
-            Entrance(
-              key: ValueKey(friend.id),
-              index: 1 + i,
-              child: Padding(
-                padding: EdgeInsets.only(bottom: StubSpace.gap),
-                child: _FriendRow(friend: friend),
+          SizedBox(height: 12),
+          _Segments(value: _tab, onChanged: (t) => setState(() => _tab = t)),
+          SizedBox(height: 12),
+          AnimatedSwitcher(
+            duration: Duration(milliseconds: 220),
+            switchInCurve: Curves.easeOutCubic,
+            transitionBuilder: (child, animation) => FadeTransition(
+              opacity: animation,
+              child: SlideTransition(
+                position: Tween(begin: Offset(0, 0.03), end: Offset.zero).animate(animation),
+                child: child,
               ),
             ),
-          Align(
-            alignment: Alignment.centerLeft,
-            child: TextButton.icon(
-              key: Key('add-friend'),
-              onPressed: () => showAddFriend(context),
-              icon: Icon(Icons.add_rounded),
-              label: Text('Add a friend'),
+            child: KeyedSubtree(
+              key: ValueKey(_tab),
+              child: switch (_tab) {
+                FriendsTab.friends => _FriendsList(friends: store.friends()),
+                FriendsTab.groups => GroupsView(),
+                FriendsTab.activity => ActivityView(),
+              },
             ),
           ),
         ],
       ),
+    );
+  }
+}
+
+class _Segments extends StatelessWidget {
+  const _Segments({required this.value, required this.onChanged});
+
+  final FriendsTab value;
+  final ValueChanged<FriendsTab> onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: EdgeInsets.all(4),
+      decoration: BoxDecoration(color: StubColors.surface, borderRadius: BorderRadius.circular(22)),
+      child: Row(
+        children: [
+          for (final tab in FriendsTab.values)
+            Expanded(
+              child: Semantics(
+                selected: tab == value,
+                button: true,
+                child: GestureDetector(
+                  key: Key('seg-${tab.name}'),
+                  onTap: () => onChanged(tab),
+                  child: AnimatedContainer(
+                    duration: Duration(milliseconds: 180),
+                    height: 34,
+                    alignment: Alignment.center,
+                    decoration: BoxDecoration(
+                      color: tab == value ? StubColors.ink : Colors.transparent,
+                      borderRadius: BorderRadius.circular(18),
+                    ),
+                    child: Text(
+                      '${tab.name[0].toUpperCase()}${tab.name.substring(1)}',
+                      style: TextStyle(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        color: tab == value ? Colors.white : StubColors.muted,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+class _FriendsList extends StatelessWidget {
+  const _FriendsList({required this.friends});
+
+  final List<FriendBalance> friends;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        if (friends.isEmpty)
+          Padding(
+            padding: EdgeInsets.symmetric(vertical: 20),
+            child: Center(child: Text('Add a friend to start splitting.', style: Theme.of(context).textTheme.bodyMedium)),
+          ),
+        for (final (i, friend) in friends.indexed)
+          Entrance(
+            key: ValueKey(friend.id),
+            index: i,
+            child: Padding(
+              padding: EdgeInsets.only(bottom: StubSpace.gap),
+              child: _FriendRow(friend: friend),
+            ),
+          ),
+        AddButton(key: Key('add-friend'), label: 'Add a friend', onTap: () => showAddFriend(context)),
+      ],
     );
   }
 }
@@ -99,7 +185,7 @@ class _FriendRow extends StatelessWidget {
     return Pressable(
       key: Key('friend-row-${friend.id}'),
       scale: 0.97,
-      onTap: () => showGlassSheet<void>(context, (_) => _FriendSheet(friendId: friend.id)),
+      onTap: () => showGlassSheet<void>(context, (_) => FriendSheet(friendId: friend.id)),
       child: SoftCard(
         child: Row(
           children: [
@@ -127,113 +213,6 @@ class _FriendRow extends StatelessWidget {
               Icon(Icons.check_rounded, size: 18, color: StubColors.owed),
           ],
         ),
-      ),
-    );
-  }
-}
-
-/// One friend: balance, recent shared history, and settle up in full or part.
-class _FriendSheet extends StatefulWidget {
-  const _FriendSheet({required this.friendId});
-
-  final int friendId;
-
-  @override
-  State<_FriendSheet> createState() => _FriendSheetState();
-}
-
-class _FriendSheetState extends State<_FriendSheet> {
-  TextEditingController? _amount;
-
-  @override
-  void dispose() {
-    _amount?.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    final model = StubScope.of(context);
-    final store = model.store;
-    final friend = store.friends().firstWhere((f) => f.id == widget.friendId);
-    final balance = friend.balance;
-    final history = store.activity(friendId: friend.id, limit: 4);
-    _amount ??= TextEditingController(text: (balance.abs() / 100).toStringAsFixed(2));
-    final headline = balance > 0
-        ? '${friend.name} owes you ${formatInr(balance, decimals: true)}'
-        : balance < 0
-            ? 'You owe ${friend.name} ${formatInr(-balance, decimals: true)}'
-            : 'All settled up';
-
-    return Padding(
-      padding: EdgeInsets.fromLTRB(20, 20, 20, 20 + MediaQuery.of(context).viewInsets.bottom),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Avatar(name: friend.name, filled: true),
-              SizedBox(width: 12),
-              Text(friend.name, style: Theme.of(context).textTheme.titleMedium),
-            ],
-          ),
-          SizedBox(height: 14),
-          Text(
-            headline,
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.w900,
-              color: balance > 0 ? StubColors.owed : balance < 0 ? StubColors.owe : StubColors.ink,
-            ),
-          ),
-          SizedBox(height: 10),
-          for (final item in history)
-            Padding(
-              padding: EdgeInsets.symmetric(vertical: 5),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Expanded(
-                    child: Text(
-                      '${item.title} · ${item.day.substring(5)}',
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700, color: StubColors.ink),
-                    ),
-                  ),
-                  Text(
-                    '${item.amount > 0 ? '+' : '−'}${formatInr(item.amount.abs(), decimals: true)}',
-                    style: TextStyle(
-                      fontSize: 13,
-                      fontWeight: FontWeight.w800,
-                      color: item.amount > 0 ? StubColors.owed : StubColors.owe,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          if (balance != 0) ...[
-            SizedBox(height: 10),
-            TextField(
-              key: Key('settle-field'),
-              controller: _amount,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
-              decoration: InputDecoration(prefixText: '₹ ', labelText: 'Amount paid'),
-            ),
-            SizedBox(height: 14),
-            PillButton(
-              key: Key('settle-button'),
-              label: balance > 0 ? 'Record payment' : 'I paid this',
-              onPressed: () {
-                final paise = parseAmount(_amount!.text) ?? 0;
-                if (paise <= 0) return;
-                model.write((s) => s.settle(friend.id, paise, day: model.today));
-                Navigator.of(context).pop();
-              },
-            ),
-          ],
-        ],
       ),
     );
   }

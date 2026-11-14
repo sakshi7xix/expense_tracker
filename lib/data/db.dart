@@ -1,6 +1,6 @@
 import 'package:sqlite3/sqlite3.dart';
 
-const schemaVersion = 3;
+const schemaVersion = 4;
 
 const defaultCategories = [
   'Food', 'Groceries', 'Transport', 'Shopping',
@@ -47,8 +47,18 @@ void migrate(Database db) {
   if (from >= 1) {
     _merged.forEach((old, into) => _merge(db, old, into));
   }
+  if (from < 4) {
+    // v4: a spend can belong to a group, and groups can be removed.
+    _addColumn(db, 'entry', 'grp_id', 'INTEGER REFERENCES grp(id)');
+    _addColumn(db, 'grp', 'deleted', 'INTEGER NOT NULL DEFAULT 0');
+  }
   db.userVersion = schemaVersion;
   db.execute('COMMIT');
+}
+
+void _addColumn(Database db, String table, String column, String type) {
+  final exists = db.select('PRAGMA table_info($table)').any((row) => row['name'] == column);
+  if (!exists) db.execute('ALTER TABLE $table ADD COLUMN $column $type');
 }
 
 int? _categoryId(Database db, String name) {

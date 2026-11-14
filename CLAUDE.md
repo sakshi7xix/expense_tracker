@@ -62,7 +62,8 @@ flutter run
 - [x] D5 Home: balance card, today, this month's spends, long-press delete with undo
 - [x] D6 Add a spend with splits (who paid; equal, amounts, percent, shares) and a plain receipt
 - [x] Friends, part 1: balances, add a friend, settle up in full or part
-- [ ] Friends, part 2: groups, activity feed, invites, reminders
+- [x] D15 Friends, part 2: Friends / Groups / Activity tabs, groups with their own balances and
+  spends, split with a whole group, copy a reminder (invites still to do)
 - [x] Stubs (weekly receipts) and Statistics (Week / Month / Year trend line, top spending)
 - [x] Paper receipt (`lib/ui/kit/paper.dart`), bundled fonts (Nunito, IBM Plex Mono), category icons
 - [x] D14 Receipts tab removed; a spend opens as its receipt (edit title and category, copy, delete)

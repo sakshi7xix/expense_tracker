@@ -131,6 +131,25 @@ void main() {
       expect(group.name, 'Flatmates');
       expect(group.memberIds, [riya, aman]);
     });
+
+    test('a group adds up its own spends and balances', () {
+      final flat = store.addGroup('Flatmates', [riya, aman]);
+      store.addSpend(title: 'Groceries', total: 90000, categoryId: food, day: nov25, friendShares: {riya: 30000, aman: 30000}, groupId: flat);
+      store.addSpend(title: 'Gas', total: 60000, categoryId: food, day: nov25, friendShares: {riya: 20000, aman: 20000}, payerFriendId: aman, groupId: flat);
+      store.addSpend(title: 'Movie', total: 50000, categoryId: food, day: nov25, friendShares: {riya: 25000});
+
+      final summary = store.groupSummary(flat);
+      expect(summary.spent, 150000);
+      expect(summary.balances, {riya: 30000, aman: 10000});
+      expect(summary.balance, 40000);
+      expect(store.groupEntries(flat).map((e) => e.title), ['Gas', 'Groceries']);
+      expect(store.balanceOf(riya), 55000, reason: 'the movie is outside the group');
+
+      store.addGroupMembers(flat, [riya]);
+      expect(store.groups().single.memberIds, [riya, aman]);
+      store.removeGroup(flat);
+      expect(store.groups(), isEmpty);
+    });
   });
 
   group('bills and autopay', () {

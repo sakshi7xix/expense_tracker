@@ -14,6 +14,7 @@ class Entry {
     required this.categoryId,
     required this.day,
     this.billId,
+    this.groupId,
   });
   final int id;
   final String title;
@@ -22,6 +23,7 @@ class Entry {
   final int categoryId;
   final String day;
   final int? billId;
+  final int? groupId;
 
   bool get isSplit => total != amount;
   bool get isAutopay => billId != null;
@@ -67,6 +69,17 @@ class Group {
   final int id;
   final String name;
   final List<int> memberIds;
+}
+
+/// A group's money: what its spends came to, and where you stand with each
+/// member from those spends (positive: they owe you).
+class GroupSummary {
+  const GroupSummary({required this.spent, required this.balances});
+  final int spent;
+  final Map<int, int> balances;
+
+  /// Your overall position in the group.
+  int get balance => balances.values.fold(0, (sum, b) => sum + b);
 }
 
 enum BillState { due, paid, skipped }

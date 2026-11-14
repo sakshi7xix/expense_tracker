@@ -15,6 +15,7 @@ extension Spends on StubStore {
     Map<int, int> friendShares = const {},
     int? payerFriendId,
     int? billId,
+    int? groupId,
   }) {
     final others = friendShares.values.fold<int>(0, (a, b) => a + b);
     final mine = total - others;
@@ -26,9 +27,9 @@ extension Spends on StubStore {
     }
     return _tx(() {
       final entryId = _insert(
-        'INSERT INTO entry (title, amount, total, category_id, day, created_at, bill_id) '
-        'VALUES (?, ?, ?, ?, ?, ?, ?)',
-        [title, mine, total, categoryId, dayKey(day), _now, billId],
+        'INSERT INTO entry (title, amount, total, category_id, day, created_at, bill_id, grp_id) '
+        'VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [title, mine, total, categoryId, dayKey(day), _now, billId, groupId],
       );
       void lend(int friendId, int amount) {
         if (amount == 0) return;
@@ -76,6 +77,7 @@ extension Spends on StubStore {
       categoryId: row['category_id'] as int,
       day: row['day'] as String,
       billId: row['bill_id'] as int?,
+      groupId: row['grp_id'] as int?,
     );
   }
 

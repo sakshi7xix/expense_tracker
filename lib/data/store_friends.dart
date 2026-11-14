@@ -85,35 +85,4 @@ extension Friends on StubStore {
     );
     return rows.map(_ledgerItem).toList();
   }
-
-  int addGroup(String name, List<int> memberIds) {
-    final clean = name.trim();
-    if (clean.isEmpty || memberIds.isEmpty) {
-      throw ArgumentError('A group needs a name and at least one friend');
-    }
-    return _tx(() {
-      final id = _insert('INSERT INTO grp (name) VALUES (?)', [clean]);
-      for (final friendId in memberIds.toSet()) {
-        db.execute('INSERT INTO grp_member (grp_id, friend_id) VALUES (?, ?)', [id, friendId]);
-      }
-      return id;
-    });
-  }
-
-  List<Group> groups() {
-    return [
-      for (final row in db.select('SELECT id, name FROM grp ORDER BY id'))
-        Group(
-          id: row['id'] as int,
-          name: row['name'] as String,
-          memberIds: [
-            for (final m in db.select(
-              'SELECT friend_id FROM grp_member WHERE grp_id = ? ORDER BY friend_id',
-              [row['id']],
-            ))
-              m['friend_id'] as int,
-          ],
-        ),
-    ];
-  }
 }
