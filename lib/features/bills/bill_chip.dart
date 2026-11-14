@@ -8,7 +8,7 @@ import '../../ui/kit/motion.dart';
 
 /// A small card for a bill that is still due this month.
 class BillChip extends StatelessWidget {
-  const BillChip({required this.bill, required this.category, required this.note, this.onTap});
+  const BillChip({super.key, required this.bill, required this.category, required this.note, this.onTap});
 
   final BillStatus bill;
   final String category;
