@@ -9,10 +9,13 @@ import 'package:material_ui/material_ui.dart';
 import 'package:stub/app.dart';
 import 'package:stub/app_model.dart';
 import 'package:stub/core/theme.dart';
+import 'package:stub/data/auth.dart';
 import 'package:stub/data/db.dart';
 import 'package:stub/data/store.dart';
 import 'package:stub/ui/kit/curled_receipt.dart';
 import 'package:stub/ui/kit/paper.dart';
+
+import '../fake_auth.dart';
 
 Future<void> _loadFont(String family, List<String> files) async {
   final loader = FontLoader(family);
@@ -65,7 +68,7 @@ void main() {
     await expectLater(find.byKey(const Key('shot')), matchesGoldenFile('receipt.png'));
   });
 
-  Future<AppModel> phone(WidgetTester tester) async {
+  Future<AppModel> phone(WidgetTester tester, {Auth? auth}) async {
     await _loadFont('Nunito', ['Nunito_600SemiBold.ttf', 'Nunito_700Bold.ttf', 'Nunito_800ExtraBold.ttf', 'Nunito_900Black.ttf']);
     await _loadFont('IBMPlexMono', ['IBMPlexMono_400Regular.ttf', 'IBMPlexMono_500Medium.ttf']);
     await _loadFont('MaterialIcons', []);
@@ -74,7 +77,7 @@ void main() {
     tester.view.physicalSize = const Size(390 * 3, 844 * 3);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
-    final model = AppModel(StubStore(openMemoryDb()), clock: () => DateTime(2026, 11, 25, 10));
+    final model = AppModel(StubStore(openMemoryDb()), clock: () => DateTime(2026, 11, 25, 10), auth: auth);
     final s = model.store;
     s.budget = 1500000;
     s.firstRunDone = true;
@@ -171,5 +174,28 @@ void main() {
     await tester.tap(find.text('Goa trip'));
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('split_group.png'));
+  });
+
+  testWidgets('account previews', (tester) async {
+    await phone(tester, auth: FakeAuth());
+    await tester.tap(find.byKey(const Key('open-settings')));
+    await tester.pumpAndSettle();
+    await tester.tap(find.byKey(const Key('settings-sign-in')));
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('signin-email')), 'you@example.com');
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('signin_email.png'));
+    await tester.tap(find.byKey(const Key('signin-send')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('signin_code.png'));
+    await tester.enterText(find.byKey(const Key('signin-code')), '123456');
+    await tester.pumpAndSettle();
+    await tester.enterText(find.byKey(const Key('signin-name')), 'Sakshi');
+    await tester.tap(find.byKey(const Key('signin-adult')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('signin_profile.png'));
+    await tester.tap(find.byKey(const Key('signin-create')));
+    await tester.pumpAndSettle();
+    await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('settings.png'));
   });
 }

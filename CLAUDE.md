@@ -9,9 +9,13 @@ receipt, bill splitting with friends, and statistics.
 - State: one `AppModel` (a `ChangeNotifier` around the store) shared through `StubScope`.
   Read with `StubScope.of(context)`; change data with `model.write((store) => ...)`.
   Navigation is the plain `Navigator`. No Riverpod or go_router.
-- Storage: SQLite through the `sqlite3` package with hand-written SQL (no code generation),
-  local-only for Release 1. Schema in `lib/data/db.dart`; all reads and writes go through
+- Storage: SQLite through the `sqlite3` package with hand-written SQL (no code generation).
+  The phone is the home of personal data; only what is shared with friends goes online. Schema in `lib/data/db.dart`; all reads and writes go through
   `StubStore` (`lib/data/store.dart` and its `store_*.dart` parts). No accounts yet.
+- Online: Supabase (Mumbai). Optional email-code sign-in (`lib/data/auth.dart`, `supabase_auth.dart`;
+  tests use `test/fake_auth.dart`). Only the publishable key is in the app; the secret key never is.
+  Schema and row level security live in `supabase/migrations/`; every table gets RLS and pgTAP tests
+  in `supabase/tests/database/` (CI job `database`). Sessions are kept in secure storage.
 - Money is always whole paise (`int`). Use `lib/core/money.dart`; never doubles.
 
 ## Folders
@@ -68,4 +72,7 @@ flutter run
 - [x] Paper receipt (`lib/ui/kit/paper.dart`), bundled fonts (Nunito, IBM Plex Mono), category icons
 - [x] D14 Receipts tab removed; a spend opens as its receipt (edit title and category, copy, delete)
 - [ ] Visual polish against the prototype, checked on a simulator
-- [ ] Settings: edit budget, edit a spend's amount and split
+- [x] S1 Sign-in (email code, name, 18+), Settings (budget, privacy, terms, licences, help, sign out,
+  delete account), profiles table with RLS and tests
+- [ ] S2 Friends online: invites by link, shared expenses and groups synced, balances on both phones
+- [ ] Edit a spend's amount and split
