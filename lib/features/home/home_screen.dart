@@ -120,7 +120,7 @@ class _BalanceCard extends StatelessWidget {
                 value: value,
                 minHeight: 5,
                 backgroundColor: Colors.white24,
-                color: Color(0xFF7FA6FF),
+                color: Color(0xFFFF9A5C),
               ),
             ),
           ),

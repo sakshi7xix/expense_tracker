@@ -7,7 +7,7 @@ import '../home/home_screen.dart';
 import '../stats/stats_screen.dart';
 import '../stubs/stubs_screen.dart';
 
-/// The tab bar and the + button.
+/// The tab bar, plus the + button on Home only.
 class Shell extends StatefulWidget {
   const Shell({super.key});
 
@@ -60,8 +60,10 @@ class _ShellState extends State<Shell> {
           },
         ),
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      floatingActionButton: FloatingActionButton(
+      floatingActionButtonLocation: FloatingActionButtonLocation.endFloat,
+      floatingActionButton: _tab != 0
+          ? null
+          : FloatingActionButton(
         key: Key('fab-add'),
         tooltip: 'Add a spend',
         backgroundColor: StubColors.pop,
@@ -77,7 +79,7 @@ class _ShellState extends State<Shell> {
         elevation: 0,
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [_tabButton(0), _tabButton(1), SizedBox(width: 56), _tabButton(2), _tabButton(3)],
+          children: [_tabButton(0), _tabButton(1), _tabButton(2), _tabButton(3)],
         ),
       ),
     );

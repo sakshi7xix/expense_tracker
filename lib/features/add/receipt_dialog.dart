@@ -1,9 +1,10 @@
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/tokens.dart';
+import '../../ui/kit/curled_receipt.dart';
 import '../../ui/kit/paper.dart';
 
-/// The printed stub shown after saving: tilted paper that feeds in from above.
+/// The printed stub shown after saving: curled 3D paper that feeds in from above.
 class ReceiptDialog extends StatelessWidget {
   const ReceiptDialog({super.key, required this.lines, this.subtitle});
 
@@ -31,17 +32,7 @@ class ReceiptDialog extends StatelessWidget {
                   child: Transform.scale(scale: 0.94 + 0.06 * t, child: child),
                 ),
               ),
-              child: RepaintBoundary(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 24),
-                  child: Tilted(
-                    child: SizedBox(
-                      width: 260,
-                      child: Paper(child: ReceiptView(subtitle: subtitle, lines: lines)),
-                    ),
-                  ),
-                ),
-              ),
+              child: RepaintBoundary(child: CurledReceipt(subtitle: subtitle, lines: lines)),
             ),
             SizedBox(height: 8),
             FilledButton(

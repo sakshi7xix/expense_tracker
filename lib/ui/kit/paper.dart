@@ -162,7 +162,7 @@ class ReceiptView extends StatelessWidget {
             ),
         if (barcode) ...[
           SizedBox(height: 12),
-          SizedBox(height: 30, child: CustomPaint(painter: _BarcodePainter())),
+          SizedBox(height: 30, child: CustomPaint(painter: BarcodePainter())),
           SizedBox(height: 6),
           Text(
             'THANK YOU',
@@ -200,7 +200,7 @@ class _DashPainter extends CustomPainter {
   bool shouldRepaint(_DashPainter oldDelegate) => false;
 }
 
-class _BarcodePainter extends CustomPainter {
+class BarcodePainter extends CustomPainter {
   static const _bars = [2.0, 1.0, 1.0, 2.0, 3.0, 1.0, 1.0, 1.0, 2.0, 1.0];
 
   @override
@@ -218,5 +218,5 @@ class _BarcodePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_BarcodePainter oldDelegate) => false;
+  bool shouldRepaint(BarcodePainter oldDelegate) => false;
 }

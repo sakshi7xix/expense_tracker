@@ -173,7 +173,7 @@ class _AddSpendScreenState extends State<AddSpendScreen> {
                     key: Key('split-row'),
                     leading: CircleAvatar(
                       radius: 18,
-                      backgroundColor: _split.active ? Color(0xFFE8EFFF) : StubColors.soft,
+                      backgroundColor: _split.active ? Color(0xFFFFF1E8) : StubColors.soft,
                       child: Icon(
                         Icons.group_rounded,
                         size: 18,

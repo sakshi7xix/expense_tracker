@@ -1,11 +1,12 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:stub/data/db.dart';
 import 'package:stub/data/models.dart';
+import 'package:sqlite3/sqlite3.dart';
 import 'package:stub/data/store.dart';
 
 void main() {
   late StubStore store;
-  late int food, cafe;
+  late int food, shop;
   final nov = DateTime(2026, 11, 1);
   final nov25 = DateTime(2026, 11, 25);
 
@@ -13,7 +14,7 @@ void main() {
     store = StubStore(openMemoryDb());
     final cats = {for (final c in store.categories()) c.name: c.id};
     food = cats['Food']!;
-    cafe = cats['Café']!;
+    shop = cats['Shopping']!;
   });
 
   tearDown(() => store.db.close());
@@ -34,13 +35,13 @@ void main() {
   group('spends', () {
     test('totals by month, day and category', () {
       store.addSpend(title: 'Groceries', total: 32650, categoryId: food, day: nov25);
-      store.addSpend(title: 'Chai', total: 2000, categoryId: cafe, day: nov25);
+      store.addSpend(title: 'Chai', total: 2000, categoryId: shop, day: nov25);
       store.addSpend(title: 'Lunch', total: 14000, categoryId: food, day: DateTime(2026, 11, 22));
       store.addSpend(title: 'October', total: 9900, categoryId: food, day: DateTime(2026, 10, 30));
 
       expect(store.spentInMonth(nov), 48650);
       expect(store.spentOnDay(nov25), 34650);
-      expect(store.categoryTotals(nov), {food: 46650, cafe: 2000});
+      expect(store.categoryTotals(nov), {food: 46650, shop: 2000});
       expect(store.entriesForMonth(nov).map((e) => e.title), ['Chai', 'Groceries', 'Lunch']);
       final daily = store.dailyTotals(nov);
       expect(daily.length, 30);
@@ -49,7 +50,7 @@ void main() {
     });
 
     test('delete is soft and can be undone', () {
-      final id = store.addSpend(title: 'Chai', total: 2000, categoryId: cafe, day: nov25);
+      final id = store.addSpend(title: 'Chai', total: 2000, categoryId: shop, day: nov25);
       store.deleteSpend(id);
       expect(store.spentInMonth(nov), 0);
       store.restoreSpend(id);
@@ -180,13 +181,35 @@ void main() {
     });
   });
 
-  test('an older database gains the new categories without losing its own', () {
-    final db = openMemoryDb();
-    db.execute("DELETE FROM category WHERE name NOT IN ('Food', 'Café')");
-    db.userVersion = 1;
+  test('an older database is moved to the refined categories without losing spends', () {
+    final db = sqlite3InMemoryV1();
+    final old = {for (final r in db.select('SELECT id, name FROM category')) r['name'] as String: r['id'] as int};
+    db.execute(
+      "INSERT INTO entry (title, amount, total, category_id, day, created_at) VALUES ('Chai', 2000, 2000, ?, '2026-11-25', 0)",
+      [old['Café']],
+    );
+    db.execute(
+      "INSERT INTO entry (title, amount, total, category_id, day, created_at) VALUES ('Bus', 3000, 3000, ?, '2026-11-25', 0)",
+      [old['Travel']],
+    );
     migrate(db);
     final upgraded = StubStore(db);
-    expect(upgraded.categories().map((c) => c.name), defaultCategories);
+    final names = {for (final c in upgraded.categories()) c.id: c.name};
+    expect(names.values, defaultCategories);
+    final byTitle = {for (final e in upgraded.entriesForMonth(DateTime(2026, 11))) e.title: names[e.categoryId]};
+    expect(byTitle, {'Chai': 'Food', 'Bus': 'Transport'});
     db.close();
   });
+}
+
+/// A database as the first release created it: schema v1 with six categories.
+Database sqlite3InMemoryV1() {
+  final db = openMemoryDb();
+  db.execute('DELETE FROM category');
+  const v1 = ['Food', 'Café', 'Travel', 'Fun', 'Home', 'Study'];
+  for (var i = 0; i < v1.length; i++) {
+    db.execute('INSERT INTO category (name, sort) VALUES (?, ?)', [v1[i], i]);
+  }
+  db.userVersion = 1;
+  return db;
 }
