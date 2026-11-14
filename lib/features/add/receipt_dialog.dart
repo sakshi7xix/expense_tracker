@@ -41,6 +41,7 @@ class ReceiptDialog extends StatelessWidget {
                 foregroundColor: Colors.white,
                 padding: EdgeInsets.symmetric(horizontal: 32, vertical: 14),
                 shape: StadiumBorder(),
+                textStyle: TextStyle(fontFamily: 'Nunito', fontSize: 15, fontWeight: FontWeight.w800),
               ),
               onPressed: () => Navigator.of(context).pop(),
               child: Text('Done'),

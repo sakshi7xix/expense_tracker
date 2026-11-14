@@ -36,7 +36,7 @@ class HomeScreen extends StatelessWidget {
 
     return SafeArea(
       child: ListView(
-        padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 24),
+        padding: EdgeInsets.fromLTRB(StubSpace.gutter, 12, StubSpace.gutter, 96),
         children: [
           Text(_greeting(model.now.hour), style: Theme.of(context).textTheme.bodyMedium),
           Text('stub', style: Theme.of(context).textTheme.titleMedium),
