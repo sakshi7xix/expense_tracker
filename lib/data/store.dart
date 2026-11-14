@@ -4,6 +4,7 @@ import 'package:sqlite3/sqlite3.dart';
 
 import '../core/dates.dart';
 import 'models.dart';
+import 'remote.dart';
 
 part 'store_bills.dart';
 part 'store_friends.dart';
