@@ -168,32 +168,3 @@ class _EntranceState extends State<Entrance> with SingleTickerProviderStateMixin
     );
   }
 }
-
-/// Opening a full screen from a button: it grows out of the bottom right,
-/// where the + sits, and shrinks back there when closed.
-class GrowRoute<T> extends PageRouteBuilder<T> {
-  GrowRoute({required WidgetBuilder builder, Alignment from = Alignment.bottomRight})
-      : super(
-          transitionDuration: Duration(milliseconds: 460),
-          reverseTransitionDuration: Duration(milliseconds: 320),
-          pageBuilder: (context, a, b) => builder(context),
-          transitionsBuilder: (context, animation, secondary, child) {
-            final t = CurvedAnimation(parent: animation, curve: Curves.easeOutQuart, reverseCurve: Curves.easeInCubic);
-            return FadeTransition(
-              opacity: CurvedAnimation(parent: animation, curve: Interval(0, 0.55)),
-              child: ScaleTransition(
-                alignment: from,
-                scale: Tween(begin: 0.86, end: 1.0).animate(t),
-                child: AnimatedBuilder(
-                  animation: t,
-                  builder: (context, child) => ClipRRect(
-                    borderRadius: BorderRadius.circular(28 * (1 - t.value)),
-                    child: child,
-                  ),
-                  child: child,
-                ),
-              ),
-            );
-          },
-        );
-}

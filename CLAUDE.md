@@ -20,7 +20,7 @@ lib/
   core/        tokens, theme, money, split maths
   data/        db schema, models, StubStore (spends, friends, bills)
   ui/kit/      shared widgets: card, sheet, pill button…   (D1)
-  features/    home, add, stubs, stats, friends, bills
+  features/    home, add (a glass sheet), receipts, stats, friends, bills
 test/          unit tests for pure logic, one widget test per screen
 ```
 
@@ -30,6 +30,9 @@ test/          unit tests for pure logic, one widget test per screen
 - Pure logic (totals, formatting, splits) gets unit tests. No end-to-end suite yet.
 - Colours, radii and spacing come from `lib/core/tokens.dart` (orange accent for actions).
   Each category and friend has its own colour in `lib/core/categories.dart`.
+- Pop-ups are frosted glass (`lib/ui/kit/glass.dart`: `showGlassSheet`, `GlassDialog`).
+  Add a spend opens as a tall glass sheet over Home, not a new page.
+- In the UI, say "receipt", never "stub" (the app name is still to be decided).
 - Keep forms short: anything with more than a couple of options opens a bottom sheet
   (see `category_sheet.dart`, `split_sheet.dart`).
 - CI (`.github/workflows/ci.yml`) runs `flutter analyze` and `flutter test` on every push.

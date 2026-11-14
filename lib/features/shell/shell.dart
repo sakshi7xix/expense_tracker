@@ -2,12 +2,13 @@ import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 
 import '../../core/tokens.dart';
+import '../../ui/kit/glass.dart';
 import '../../ui/kit/motion.dart';
-import '../add/add_spend_screen.dart';
+import '../add/add_spend_sheet.dart';
 import '../friends/friends_screen.dart';
 import '../home/home_screen.dart';
 import '../stats/stats_screen.dart';
-import '../stubs/stubs_screen.dart';
+import '../receipts/receipts_screen.dart';
 
 /// The tab bar, plus the + button on Home only.
 class Shell extends StatefulWidget {
@@ -22,7 +23,7 @@ class _ShellState extends State<Shell> {
 
   static const _tabs = [
     (icon: Icons.home_rounded, label: 'Home'),
-    (icon: Icons.receipt_long_rounded, label: 'Stubs'),
+    (icon: Icons.receipt_long_rounded, label: 'Receipts'),
     (icon: Icons.bar_chart_rounded, label: 'Statistics'),
     (icon: Icons.group_rounded, label: 'Friends'),
   ];
@@ -49,7 +50,7 @@ class _ShellState extends State<Shell> {
           key: ValueKey(_tab),
           child: switch (_tab) {
             0 => HomeScreen(),
-            1 => StubsScreen(),
+            1 => ReceiptsScreen(),
             2 => StatsScreen(),
             _ => FriendsScreen(),
           },
@@ -70,7 +71,7 @@ class _ShellState extends State<Shell> {
                 shape: CircleBorder(),
                 onPressed: () {
                   HapticFeedback.lightImpact();
-                  Navigator.of(context).push(GrowRoute<void>(builder: (_) => AddSpendScreen()));
+                  showGlassSheet<void>(context, (_) => AddSpendSheet());
                 },
                 child: Icon(Icons.add_rounded, size: 30),
               ),

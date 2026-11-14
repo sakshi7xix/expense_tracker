@@ -112,7 +112,7 @@ class ReceiptView extends StatelessWidget {
   const ReceiptView({
     super.key,
     required this.lines,
-    this.title = 'STUB',
+    this.title = 'RECEIPT',
     this.subtitle,
     this.barcode = true,
   });

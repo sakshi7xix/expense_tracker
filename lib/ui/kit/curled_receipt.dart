@@ -60,7 +60,7 @@ class CurledReceipt extends StatelessWidget {
     return [
       _Strip(SizedBox(), 10),
       _Strip(
-        centred('STUB', TextStyle(fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: 4, color: StubColors.ink)),
+        centred('RECEIPT', TextStyle(fontSize: 15, fontWeight: FontWeight.w800, letterSpacing: 4, color: StubColors.ink)),
         26,
       ),
       if (subtitle != null)

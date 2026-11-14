@@ -10,14 +10,14 @@ import '../../ui/kit/motion.dart';
 import '../../ui/kit/paper.dart';
 
 /// One receipt per week of the month. Tap a week to unfold it.
-class StubsScreen extends StatefulWidget {
-  const StubsScreen({super.key});
+class ReceiptsScreen extends StatefulWidget {
+  const ReceiptsScreen({super.key});
 
   @override
-  State<StubsScreen> createState() => _StubsScreenState();
+  State<ReceiptsScreen> createState() => _ReceiptsScreenState();
 }
 
-class _StubsScreenState extends State<StubsScreen> {
+class _ReceiptsScreenState extends State<ReceiptsScreen> {
   int? _open;
 
   @override
@@ -40,7 +40,7 @@ class _StubsScreenState extends State<StubsScreen> {
       child: ListView(
         padding: EdgeInsets.fromLTRB(28, 12, 28, 32),
         children: [
-          Text('Stubs', style: Theme.of(context).textTheme.titleMedium),
+          Text('Receipts', style: Theme.of(context).textTheme.titleMedium),
           Text(
             '${monthName(today)} · one receipt for each week',
             style: Theme.of(context).textTheme.bodyMedium,
