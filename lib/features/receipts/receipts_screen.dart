@@ -22,9 +22,9 @@ class ReceiptsScreen extends StatefulWidget {
 }
 
 class _ReceiptsScreenState extends State<ReceiptsScreen> with SingleTickerProviderStateMixin {
-  static const _cardWidth = 236.0;
-  static const _step = 0.62; // radians between neighbouring receipts
-  static const _radius = 250.0;
+  static const _cardWidth = 248.0;
+  static const _step = 0.78; // radians between neighbouring receipts
+  static const _radius = 300.0;
 
   late final AnimationController _spin = AnimationController.unbounded(vsync: this);
   bool _started = false;
@@ -118,7 +118,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> with SingleTickerProvid
                   final order = [for (var w = 0; w <= last; w++) w]
                     ..sort((a, b) => (b - pos).abs().compareTo((a - pos).abs()));
                   return Stack(
-                    alignment: Alignment.topCenter,
+                    alignment: Alignment.center,
                     clipBehavior: Clip.none,
                     children: [
                       for (final w in order)
@@ -202,23 +202,26 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> with SingleTickerProvid
   }
 
   /// Puts one receipt on the ring: [offset] 0 is the front, ±1 the sides.
+  /// Side receipts stay solid paper and are shaded darker, not see-through.
   Widget _placed(BuildContext context, {required double offset, required VoidCallback onTap, required Widget child}) {
     final angle = offset * _step;
     final x = _radius * math.sin(angle);
-    final z = _radius * (1 - math.cos(angle));
-    final near = 1 - math.min(1.0, offset.abs() / 2.6);
-    return Positioned(
-      top: 18,
-      child: Transform(
-        alignment: Alignment.topCenter,
-        transform: Matrix4.identity()
-          ..setEntry(3, 2, 0.0011)
-          ..translateByDouble(x, 0, z, 1)
-          ..rotateY(-angle * 0.85),
-        child: Opacity(
-          opacity: (0.25 + 0.75 * near).clamp(0.0, 1.0),
+    final z = _radius * (1 - math.cos(angle)) + 40 * math.min(1.0, offset.abs());
+    final shade = 0.22 * math.min(1.0, offset.abs());
+    final far = offset.abs();
+    final opacity = far < 1.3 ? 1.0 : (1 - (far - 1.3) / 1.1).clamp(0.0, 1.0);
+    return Transform(
+      alignment: Alignment.center,
+      transform: Matrix4.identity()
+        ..setEntry(3, 2, 0.0012)
+        ..translateByDouble(x, -40, z, 1)
+        ..rotateY(-angle * 0.9),
+      child: Opacity(
+        opacity: opacity,
+        child: ColorFiltered(
+          colorFilter: ColorFilter.mode(Color.fromRGBO(24, 24, 32, shade), BlendMode.srcATop),
           child: IgnorePointer(
-            ignoring: offset.abs() < 0.5,
+            ignoring: far < 0.5,
             child: GestureDetector(onTap: onTap, child: SizedBox(width: _cardWidth, child: child)),
           ),
         ),
