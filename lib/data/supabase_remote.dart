@@ -22,6 +22,7 @@ class SupabaseRemote implements Remote {
       if (m.contains('no one has that code')) throw const RemoteFailure('No one has that code. Check it with your friend.');
       if (m.contains('your own code')) throw const RemoteFailure('That’s your own code.');
       if (m.contains('already friends')) throw const RemoteFailure('You’re already friends.');
+      if (m.contains('backup is full')) throw const RemoteFailure('Your backup is full. Write to us and we’ll help.');
       if (m.contains('invite not found')) throw const RemoteFailure('That request was already answered.');
       throw RemoteFailure(m);
     } on AuthException catch (e) {
@@ -148,5 +149,25 @@ class SupabaseRemote implements Remote {
               updatedAt: r['updated_at'] as String,
             ),
         ];
+      });
+
+  @override
+  Future<void> saveBackup(List<BackupRow> rows) => _guard(() async {
+        final owner = _client.auth.currentUser!.id;
+        await _client.from('backup_rows').upsert(
+          [for (final r in rows) {'owner': owner, 'kind': r.kind, 'key': r.key, 'data': r.data}],
+          onConflict: 'owner,kind,key',
+        );
+      });
+
+  @override
+  Future<List<BackupRow>> loadBackup() => _guard(() async {
+        const page = 1000;
+        final out = <BackupRow>[];
+        for (var from = 0;; from += page) {
+          final rows = await _client.from('backup_rows').select('kind, key, data').order('kind').order('key').range(from, from + page - 1);
+          out.addAll([for (final r in rows) BackupRow(r['kind'] as String, r['key'] as String, (r['data'] as Map).cast<String, Object?>())]);
+          if (rows.length < page) return out;
+        }
       });
 }

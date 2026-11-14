@@ -81,6 +81,16 @@ class SentInvite {
   final String? acceptedBy;
 }
 
+/// One thing from the phone in your private backup: a friend, spend, ledger
+/// line, group or setting. [data] `{"gone": true}` means it was removed.
+class BackupRow {
+  const BackupRow(this.kind, this.key, this.data);
+
+  final String kind;
+  final String key;
+  final Map<String, Object?> data;
+}
+
 /// A failure fit to show as it is.
 class RemoteFailure implements Exception {
   const RemoteFailure(this.message);
@@ -123,4 +133,10 @@ abstract class Remote {
   /// Changes since [since] (an `updatedAt` from an earlier result), oldest first.
   Future<List<RemoteExpense>> expensesSince(String? since);
   Future<List<RemotePayment>> paymentsSince(String? since);
+
+  /// Saves rows to your private backup, replacing any with the same kind and key.
+  Future<void> saveBackup(List<BackupRow> rows);
+
+  /// Everything in your private backup.
+  Future<List<BackupRow>> loadBackup();
 }

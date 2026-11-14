@@ -6,6 +6,7 @@ import '../core/dates.dart';
 import 'models.dart';
 import 'remote.dart';
 
+part 'store_backup.dart';
 part 'store_bills.dart';
 part 'store_friends.dart';
 part 'store_groups.dart';

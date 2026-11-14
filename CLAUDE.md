@@ -10,7 +10,9 @@ receipt, bill splitting with friends, and statistics.
   Read with `StubScope.of(context)`; change data with `model.write((store) => ...)`.
   Navigation is the plain `Navigator`. No Riverpod or go_router.
 - Storage: SQLite through the `sqlite3` package with hand-written SQL (no code generation).
-  The phone is the home of personal data; only what is shared with friends goes online. Schema in `lib/data/db.dart`; all reads and writes go through
+  The phone is the home of personal data. Online there is only what is shared with friends, plus,
+  when signed in, a private owner-only backup (`backup_rows`, filled from the `backup_queue` triggers in
+  `lib/data/db_backup.dart`; restored on a new phone by `Sync`). Schema in `lib/data/db.dart`; all reads and writes go through
   `StubStore` (`lib/data/store.dart` and its `store_*.dart` parts).
 - Online: Supabase (Mumbai). Optional email-code sign-in (`lib/data/auth.dart`, `supabase_auth.dart`;
   tests use `test/fake_auth.dart`). Only the publishable key is in the app; the secret key never is.
@@ -83,3 +85,5 @@ flutter run
 - [x] S6 Friend codes: everyone has a personal 8-character code (Settings, Add a friend); friends
   are added only by typing it, they accept from the bell, then splits sync. No email or WhatsApp invites.
 - [x] S7 Edit a spend's amount, title, category and split from its receipt (synced); Undo messages time out
+- [x] S8 Private backup: every spend, friend, balance, group and the budget are backed up to the signed-in
+  account (owner-only RLS) and come back after a reinstall or on a new phone; Settings shows the backup status

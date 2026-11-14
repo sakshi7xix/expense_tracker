@@ -10,6 +10,9 @@ class FakeServer {
   final friendships = <String>{};
   final expenses = <String, RemoteExpense>{};
   final payments = <String, RemotePayment>{};
+
+  /// Account id to its private backup, keyed by 'kind/key'.
+  final backups = <String, Map<String, BackupRow>>{};
   int _clock = 0;
   int _ids = 0;
 
@@ -142,4 +145,15 @@ class FakeRemote implements Remote {
         for (final p in server.payments.values)
           if ((p.from == me || p.to == me) && (since == null || p.updatedAt.compareTo(since) > 0)) p,
       ]..sort((a, b) => a.updatedAt.compareTo(b.updatedAt));
+
+  @override
+  Future<void> saveBackup(List<BackupRow> rows) async {
+    final mine = server.backups.putIfAbsent(me, () => {});
+    for (final r in rows) {
+      mine['${r.kind}/${r.key}'] = r;
+    }
+  }
+
+  @override
+  Future<List<BackupRow>> loadBackup() async => [...?server.backups[me]?.values];
 }

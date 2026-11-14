@@ -89,6 +89,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(auth.deleted, isTrue);
+    await tester.scrollUntilVisible(find.byKey(const Key('profile-name')), -200);
     expect(profileName(tester), 'Not signed in');
     expect(find.text('Your account was deleted'), findsOneWidget);
     expect(model.store.budget, 1500000);
@@ -108,11 +109,12 @@ void main() {
     expect(find.text('₹20,000'), findsOneWidget);
   });
 
-  testWidgets('the privacy policy says what stays on the phone', (tester) async {
+  testWidgets('the privacy policy says what stays on the phone and what is backed up', (tester) async {
     await openSettings(tester, modelWith(OfflineAuth()));
     await tester.tap(find.byKey(const Key('open-privacy')));
     await tester.pumpAndSettle();
-    expect(find.textContaining('stay on your phone'), findsOneWidget);
+    expect(find.textContaining('stays on your phone'), findsOneWidget);
+    expect(find.textContaining('Only you can read this copy'), findsOneWidget);
   });
 
   testWidgets('Friends offers sign-in when signed out', (tester) async {
