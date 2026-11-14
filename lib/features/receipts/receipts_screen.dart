@@ -214,7 +214,7 @@ class _ReceiptsScreenState extends State<ReceiptsScreen> with SingleTickerProvid
       alignment: Alignment.center,
       transform: Matrix4.identity()
         ..setEntry(3, 2, 0.0012)
-        ..translateByDouble(x, -40, z, 1)
+        ..translateByDouble(x, -10, z, 1)
         ..rotateY(-angle * 0.9),
       child: Opacity(
         opacity: opacity,
@@ -248,6 +248,7 @@ class _WeekReceipt extends StatelessWidget {
     return Paper(
       padding: EdgeInsets.fromLTRB(16, 16, 16, 20),
       child: Column(
+        mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           Text('Week ${week + 1}', textAlign: TextAlign.center, style: bold.copyWith(fontSize: 14, letterSpacing: 2)),
