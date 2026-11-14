@@ -73,7 +73,10 @@ jobs:
           done
           grep -n 'android:label\|INTERNET' android/app/src/main/AndroidManifest.xml
       - run: flutter pub get
-      - run: dart run flutter_launcher_icons
+      - name: App icon (Android only here)
+        run: |
+          sed -i 's/^  ios: true$/  ios: false/' pubspec.yaml
+          dart run flutter_launcher_icons
       - run: flutter build apk --release --build-number ${{ github.run_number }}
       - name: Publish to the android-latest release
         env:
