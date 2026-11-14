@@ -28,7 +28,7 @@ Future<bool?> showSignIn(BuildContext context) {
   );
 }
 
-enum _Step { welcome, email, code, profile }
+enum _Step { welcome, code, profile }
 
 /// Charcoal dome with an animated picture on top, a white panel below that
 /// slides up with each step's form.
@@ -51,6 +51,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
   bool _busy = false;
   String? _error;
   int _wait = 0;
+  int _lastEmailLength = 0;
   Timer? _timer;
 
   @override
@@ -91,6 +92,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
   }
 
   Future<void> _send() async {
+    if (_busy) return;
     if (!looksLikeEmail(_email.text)) {
       setState(() => _error = 'That email doesn’t look right');
       return;
@@ -138,10 +140,8 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
     switch (_step) {
       case _Step.welcome:
         Navigator.of(context).pop(false);
-      case _Step.email:
-        _go(_Step.welcome);
       case _Step.code:
-        _go(_Step.email);
+        _go(_Step.welcome);
       case _Step.profile:
         break;
     }
@@ -151,13 +151,11 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final (title, line) = switch (_step) {
       _Step.welcome => ('Welcome to Bilby', 'Your spends, and splits with friends'),
-      _Step.email => ('Welcome', 'Sign in or create an account'),
       _Step.code => ('Check your email', 'Code sent to ${_email.text.trim()}'),
       _Step.profile => ('Nice to meet you', 'Friends will see this name'),
     };
     final art = switch (_step) {
       _Step.welcome => ReceiptOrbitArt(),
-      _Step.email => EnvelopeArt(),
       _Step.code => EnvelopeArt(plane: false, size: 96),
       _Step.profile => ValueListenableBuilder(valueListenable: _name, builder: (context, v, _) => InitialArt(name: v.text)),
     };
@@ -289,38 +287,34 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
           children: [
             Text('Split with friends', style: _heading),
             SizedBox(height: 4),
-            Text('They see the same splits on their phones. Your own spends stay on yours.', style: _muted),
-            SizedBox(height: 18),
-            PillButton(key: Key('signin-start'), label: 'Continue with email', onPressed: () => _go(_Step.email)),
-            SizedBox(height: 10),
-            FrostButton(key: Key('signin-later'), label: 'Not now', onPressed: () => Navigator.of(context).pop(false)),
-          ],
-        );
-      case _Step.email:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Email address', style: _label),
-            SizedBox(height: 6),
+            Text('Sign in so friends see the same splits. Your own spends stay on your phone.', style: _muted),
+            SizedBox(height: 14),
             _Field(
               child: TextField(
                 key: Key('signin-email'),
                 controller: _email,
-                autofocus: true,
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.send,
+                onChanged: (v) {
+                  if (_error != null) setState(() => _error = null);
+                  // Picked from the keyboard's suggestions or pasted in one go: send straight away.
+                  if (v.length - _lastEmailLength > 4 && looksLikeEmail(v)) _send();
+                  _lastEmailLength = v.length;
+                },
                 onSubmitted: (_) => _send(),
                 style: _input,
-                decoration: _plain.copyWith(hintText: 'you@example.com', icon: Icon(Icons.mail_outline_rounded, color: StubColors.muted)),
+                decoration: _plain.copyWith(hintText: 'Your email', icon: Icon(Icons.mail_outline_rounded, color: StubColors.muted)),
               ),
             ),
             error,
-            SizedBox(height: 14),
+            SizedBox(height: 12),
             PillButton(key: Key('signin-send'), label: 'Send code', busy: _busy, onPressed: _send),
-            SizedBox(height: 10),
+            SizedBox(height: 8),
+            FrostButton(key: Key('signin-later'), label: 'Not now', onPressed: () => Navigator.of(context).pop(false)),
+            SizedBox(height: 8),
             Text(
-              'We’ll email you a 6-digit code, no password needed. By continuing you agree to the Terms of use and '
+              'We’ll email you a 6-digit code, no password. By continuing you agree to the Terms of use and '
               'Privacy policy and confirm you’re 18 or older.',
               textAlign: TextAlign.center,
               style: _fine,
@@ -347,7 +341,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
                   onPressed: _wait > 0 || _busy ? null : _send,
                   child: Text(_wait > 0 ? 'Send again in 0:${_wait.toString().padLeft(2, '0')}' : 'Send again'),
                 ),
-                TextButton(onPressed: () => _go(_Step.email), child: Text('Change email')),
+                TextButton(onPressed: () => _go(_Step.welcome), child: Text('Change email')),
               ],
             ),
           ],

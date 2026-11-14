@@ -43,8 +43,6 @@ void main() {
     await tester.tap(find.byKey(const Key('settings-sign-in')));
     await tester.pumpAndSettle();
     expect(find.text('Split with friends'), findsOneWidget);
-    await tester.tap(find.byKey(const Key('signin-start')));
-    await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('signin-email')), 'asha@example');
     await tester.tap(find.byKey(const Key('signin-send')));
     await tester.pump();
@@ -135,11 +133,10 @@ void main() {
     await openSettings(tester, model);
     await tester.tap(find.byKey(const Key('settings-sign-in')));
     await tester.pumpAndSettle();
-    await tester.tap(find.byKey(const Key('signin-start')));
-    await tester.pumpAndSettle();
+    // Picking an email from the keyboard's suggestions fills it in one go and sends at once.
     await tester.enterText(find.byKey(const Key('signin-email')), 'asha@example.com');
-    await tester.tap(find.byKey(const Key('signin-send')));
     await tester.pumpAndSettle();
+    expect(find.text('Check your email'), findsOneWidget);
     await tester.enterText(find.byKey(const Key('signin-code')), '123456');
     await tester.pumpAndSettle();
     expect(profileName(tester), 'Asha');
