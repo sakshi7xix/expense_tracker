@@ -229,7 +229,8 @@ void main() {
       final e = store.entriesForMonth(nov).single;
       expect((e.title, e.total, e.amount, e.categoryId), ('Dinner out', 20000, 10000, shop));
       expect(store.balanceOf(riya), 10000);
-      expect(store.splitOfSpend(id), (shares: {riya: 10000}, payer: null));
+      expect(store.splitOfSpend(id).shares, {riya: 10000});
+      expect(store.splitOfSpend(id).payer, isNull);
 
       store.updateSpend(id, title: 'Dinner out', total: 20000, categoryId: shop);
       expect(store.balanceOf(riya), 0, reason: 'no longer split');
