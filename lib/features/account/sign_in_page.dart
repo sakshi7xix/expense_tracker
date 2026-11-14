@@ -28,7 +28,7 @@ Future<bool?> showSignIn(BuildContext context) {
   );
 }
 
-enum _Step { welcome, email, code, profile }
+enum _Step { welcome, code, profile }
 
 /// Charcoal dome with an animated picture on top, a white panel below that
 /// slides up with each step's form.
@@ -43,6 +43,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
   final _email = TextEditingController();
   final _code = TextEditingController();
   final _name = TextEditingController();
+  final _codeFocus = FocusNode();
   late final AnimationController _success = AnimationController(vsync: this, duration: Duration(milliseconds: 1100))
     ..addStatusListener((s) {
       if (s == AnimationStatus.completed && mounted) Navigator.of(context).pop(true);
@@ -57,6 +58,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
   void dispose() {
     _timer?.cancel();
     _success.dispose();
+    _codeFocus.dispose();
     _email.dispose();
     _code.dispose();
     _name.dispose();
@@ -98,6 +100,10 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
     if (!await _run(() => _auth.sendCode(_email.text)) || !mounted) return;
     _code.clear();
     _go(_Step.code);
+    // Open the keyboard on the code boxes straight away.
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _codeFocus.requestFocus();
+    });
     setState(() => _wait = 60);
     _timer = Timer.periodic(Duration(seconds: 1), (t) {
       if (!mounted) return t.cancel();
@@ -138,10 +144,8 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
     switch (_step) {
       case _Step.welcome:
         Navigator.of(context).pop(false);
-      case _Step.email:
-        _go(_Step.welcome);
       case _Step.code:
-        _go(_Step.email);
+        _go(_Step.welcome);
       case _Step.profile:
         break;
     }
@@ -151,13 +155,11 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
   Widget build(BuildContext context) {
     final (title, line) = switch (_step) {
       _Step.welcome => ('Welcome to Bilby', 'Your spends, and splits with friends'),
-      _Step.email => ('Welcome', 'Sign in or create an account'),
       _Step.code => ('Check your email', 'Code sent to ${_email.text.trim()}'),
       _Step.profile => ('Nice to meet you', 'Friends will see this name'),
     };
     final art = switch (_step) {
       _Step.welcome => ReceiptOrbitArt(),
-      _Step.email => EnvelopeArt(),
       _Step.code => EnvelopeArt(plane: false, size: 96),
       _Step.profile => ValueListenableBuilder(valueListenable: _name, builder: (context, v, _) => InitialArt(name: v.text)),
     };
@@ -289,24 +291,12 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
           children: [
             Text('Split with friends', style: _heading),
             SizedBox(height: 4),
-            Text('They see the same splits on their phones. Your own spends stay on yours.', style: _muted),
-            SizedBox(height: 18),
-            PillButton(key: Key('signin-start'), label: 'Continue with email', onPressed: () => _go(_Step.email)),
-            SizedBox(height: 10),
-            FrostButton(key: Key('signin-later'), label: 'Not now', onPressed: () => Navigator.of(context).pop(false)),
-          ],
-        );
-      case _Step.email:
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Text('Email address', style: _label),
-            SizedBox(height: 6),
+            Text('Sign in with your email. Your own spends stay on this phone.', style: _muted),
+            SizedBox(height: 14),
             _Field(
               child: TextField(
                 key: Key('signin-email'),
                 controller: _email,
-                autofocus: true,
                 keyboardType: TextInputType.emailAddress,
                 autofillHints: const [AutofillHints.email],
                 textInputAction: TextInputAction.send,
@@ -318,6 +308,8 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
             error,
             SizedBox(height: 14),
             PillButton(key: Key('signin-send'), label: 'Send code', busy: _busy, onPressed: _send),
+            SizedBox(height: 10),
+            FrostButton(key: Key('signin-later'), label: 'Not now', onPressed: () => Navigator.of(context).pop(false)),
             SizedBox(height: 10),
             Text(
               'We’ll email you a 6-digit code, no password needed. By continuing you agree to the Terms of use and '
@@ -331,7 +323,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _CodeBoxes(controller: _code, onChanged: (v) {
+            _CodeBoxes(controller: _code, focusNode: _codeFocus, onChanged: (v) {
               if (_error != null) setState(() => _error = null);
               setState(() {});
               if (v.length == 6) _verify();
@@ -347,7 +339,7 @@ class _SignInPageState extends State<SignInPage> with SingleTickerProviderStateM
                   onPressed: _wait > 0 || _busy ? null : _send,
                   child: Text(_wait > 0 ? 'Send again in 0:${_wait.toString().padLeft(2, '0')}' : 'Send again'),
                 ),
-                TextButton(onPressed: () => _go(_Step.email), child: Text('Change email')),
+                TextButton(onPressed: () => _go(_Step.welcome), child: Text('Change email')),
               ],
             ),
           ],
@@ -430,9 +422,10 @@ class _Field extends StatelessWidget {
 
 /// Six boxes over one hidden field; each digit pops into its box.
 class _CodeBoxes extends StatelessWidget {
-  const _CodeBoxes({required this.controller, required this.onChanged});
+  const _CodeBoxes({required this.controller, required this.focusNode, required this.onChanged});
 
   final TextEditingController controller;
+  final FocusNode focusNode;
   final ValueChanged<String> onChanged;
 
   @override
@@ -473,6 +466,7 @@ class _CodeBoxes extends StatelessWidget {
             child: TextField(
               key: Key('signin-code'),
               controller: controller,
+              focusNode: focusNode,
               autofocus: true,
               showCursor: false,
               enableInteractiveSelection: false,

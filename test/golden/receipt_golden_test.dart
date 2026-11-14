@@ -184,8 +184,6 @@ void main() {
     await tester.tap(find.byKey(const Key('settings-sign-in')));
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('signin_welcome.png'));
-    await tester.tap(find.byKey(const Key('signin-start')));
-    await tester.pumpAndSettle();
     await tester.enterText(find.byKey(const Key('signin-email')), 'you@example.com');
     await tester.pumpAndSettle();
     await expectLater(find.byKey(const Key('screen')), matchesGoldenFile('signin_email.png'));
